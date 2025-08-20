@@ -1,0 +1,106 @@
+<style>
+  #uploadArea {
+    border: 2px dashed #3498db;
+    padding: 30px;
+    text-align: center;
+    color: #3498db;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  #uploadArea.dragover {
+    background-color: #ecf0f1;
+  }
+  #fileList {
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background: white;
+  }
+  #fileList div {
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+</style>
+
+<div id="uploadArea">点击或拖拽文件到这里上传（支持多文件）</div>
+<input type="file" id="fileInput" multiple style="display:none" />
+<div id="fileList"></div>
+
+<script>
+  (function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+
+    const uploadingFiles = new Map();
+
+    function updateFileList() {
+      let html = '';
+      uploadingFiles.forEach((status, fileName) => {
+        html += `<div>${fileName} - ${status}</div>`;
+      });
+      fileList.innerHTML = html;
+    }
+
+    function uploadFiles(files) {
+      for (const file of files) {
+        uploadingFiles.set(file.name, '等待上传');
+      }
+      updateFileList();
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        uploadingFiles.set(file.name, '上传中...');
+        updateFileList();
+
+        fetch('http://localhost:8080/upload', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('上传失败');
+          return res.text();
+        })
+        .then(text => {
+          uploadingFiles.set(file.name, '上传成功');
+          updateFileList();
+        })
+        .catch(err => {
+          uploadingFiles.set(file.name, '上传失败：' + err.message);
+          updateFileList();
+        });
+      }
+    }
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        uploadFiles(fileInput.files);
+        fileInput.value = '';
+      }
+    });
+
+    uploadArea.addEventListener('dragover', e => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        uploadFiles(e.dataTransfer.files);
+      }
+    });
+  })();
+</script>

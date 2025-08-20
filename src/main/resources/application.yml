@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: tmodloader_board
+  data:
+    ldap:
+      repositories:
+        enabled:
+  servlet:
+    multipart:
+      max-request-size: -1
+      max-file-size: -1
+

@@ -1,0 +1,49 @@
+<button id="startCreateBtn">开始创建</button>
+<div id="modListContainer" style="margin-top:20px;"></div>
+
+<script>
+  (function() {
+    const startCreateBtn = document.getElementById('startCreateBtn');
+    const modListContainer = document.getElementById('modListContainer');
+
+    startCreateBtn.addEventListener('click', () => {
+      fetch('http://localhost:8080/start', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('请求失败');
+        return res.json();
+      })
+      .then(modList => {
+        if (Array.isArray(modList) && modList.length > 0) {
+          let html = `<h3>选择要启用的模组：</h3>`;
+          modList.forEach(mod => {
+            html += `<label style="display:block; margin-bottom:5px;">
+              <input type="checkbox" name="mod" value="${mod}"> ${mod}
+            </label>`;
+          });
+          html += `<button id="confirmModsBtn" style="margin-top:10px;">确认启用</button>`;
+          modListContainer.innerHTML = html;
+
+          document.getElementById('confirmModsBtn').addEventListener('click', () => {
+            const checkedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
+            alert('已选择的模组：' + checkedMods.join(', '));
+            fetch('http://localhost:8080/enableMods', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({mods: checkedMods})
+            })
+            .then(res => res.text())
+            .then(msg => alert('启用结果：' + msg))
+            .catch(err => alert('启用失败：' + err.message));
+          });
+        } else {
+          modListContainer.innerHTML = '<p>没有可用模组。</p>';
+        }
+      })
+      .catch(err => alert(err.message));
+    });
+  })();
+</script>

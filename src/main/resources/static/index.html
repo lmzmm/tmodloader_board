@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>服务器管理</title>
+<style>
+  /* 样式基本不变，微调上传状态的样式 */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+  }
+  *, *:before, *:after {
+    box-sizing: inherit;
+  }
+  .container { display: flex; height: 100vh; }
+  .sidebar {
+    width: 200px; background-color: #2c3e50; color: white;
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .content { flex-grow: 1; padding: 20px; background-color: #ecf0f1; overflow-y: auto; }
+  .sidebar button {
+    background: none; border: none; color: white; padding: 20px;
+    text-align: left; font-size: 16px; cursor: pointer;
+    border-bottom: 1px solid #34495e; transition: background-color 0.3s;
+  }
+  .sidebar button:hover, .sidebar button.active { background-color: #34495e; }
+  .content button {
+    padding: 10px 20px; font-size: 16px; margin-right: 15px;
+    cursor: pointer; background-color: #3498db; color: white;
+    border: none; border-radius: 5px;
+  }
+  .content button:hover { background-color: #2980b9; }
+  .content button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+  .content h2, .content h3 {
+    color: #2c3e50; border-bottom: 2px solid #bdc3c7; padding-bottom: 10px;
+  }
+  .content-wrapper { display: flex; gap: 20px; }
+  .selection-area { flex-grow: 1; }
+  .upload-area {
+    width: 350px; flex-shrink: 0; background-color: #ffffff;
+    border: 1px solid #bdc3c7; border-radius: 5px; padding: 15px;
+    display: none;
+  }
+  .upload-area.visible { display: block; }
+  .drop-zone {
+    border: 2px dashed #3498db; border-radius: 5px; padding: 40px 20px;
+    text-align: center; color: #3498db; cursor: pointer; transition: background-color 0.3s;
+  }
+  .drop-zone.dragover { background-color: #eaf5ff; border-style: solid; }
+  .item-list label {
+    display: block; margin-bottom: 10px; background-color: #ffffff;
+    padding: 10px; border-radius: 5px; border: 1px solid #ddd;
+  }
+  .file-list-container {
+    margin-top: 15px; max-height: 150px; overflow-y: auto;
+    font-size: 14px;
+  }
+  .file-list-container div { padding: 5px; background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; }
+  /* 新增：上传状态样式 */
+  #uploadStatus { margin-top: 15px; font-size: 14px; }
+  .status-success { color: #27ae60; }
+  .status-fail { color: #c0392b; }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; margin-bottom: 5px; }
+  .form-group input { width: 300px; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="sidebar">
+    <button id="btnCreateServer" class="active">创建服务器</button>
+    <button id="btnServerList">服务器列表</button>
+  </div>
+  <div class="content" id="contentArea">
+    <!-- 内容将通过JS动态加载 -->
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  const contentArea = document.getElementById('contentArea');
+  const btnCreate = document.getElementById('btnCreateServer');
+  const btnList = document.getElementById('btnServerList');
+
+  let serverConfig = {};
+
+  // --- 通用上传逻辑处理器 ---
+  function setupUploader(options) {
+    const {
+      dropZoneId, fileInputId, fileListId, uploadBtnId, showUploaderBtnId,
+      uploaderAreaId, uploadEndpoint, onUploadComplete, statusContainerId
+    } = options;
+
+    const dropZone = document.getElementById(dropZoneId);
+    const fileInput = document.getElementById(fileInputId);
+    const fileListContainer = document.getElementById(fileListId);
+    const uploadBtn = document.getElementById(uploadBtnId);
+    const showUploaderBtn = document.getElementById(showUploaderBtnId);
+    const uploaderArea = document.getElementById(uploaderAreaId);
+    const statusContainer = document.getElementById(statusContainerId);
+
+    let filesToUpload = [];
+
+    const updateFileList = () => {
+      fileListContainer.innerHTML = '';
+      if (filesToUpload.length === 0) {
+        fileListContainer.innerHTML = '<p>暂无文件</p>';
+        return;
+      }
+      filesToUpload.forEach(file => {
+        const fileElement = document.createElement('div');
+        fileElement.textContent = file.name;
+        fileListContainer.appendChild(fileElement);
+      });
+    };
+
+    const handleFiles = (files) => {
+      filesToUpload.push(...Array.from(files));
+      updateFileList();
+    };
+
+    showUploaderBtn.addEventListener('click', () => uploaderArea.classList.toggle('visible'));
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
+    });
+    ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover')));
+    ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover')));
+    dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+    // --- **核心改动：修改上传逻辑** ---
+    uploadBtn.addEventListener('click', async () => {
+      if (filesToUpload.length === 0) {
+        alert('请先选择或拖拽文件！');
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      statusContainer.innerHTML = '正在准备上传...';
+      const uploadPromises = [];
+
+      for (const file of filesToUpload) {
+        const formData = new FormData();
+        // **关键: 后端接收的键是 'file'，且一次只传一个文件**
+        formData.append('file', file);
+
+        const promise = fetch(uploadEndpoint, {
+          method: 'POST',
+          body: formData,
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => Promise.reject(`服务器错误: ${text}`));
+          }
+          return response.text();
+        })
+        .then(text => {
+          if (text.trim() === 'OK') {
+             statusContainer.innerHTML += `<div class="status-success">✅ ${file.name} - 上传成功!</div>`;
+          } else {
+             return Promise.reject(`未知响应: ${text}`);
+          }
+        })
+        .catch(err => {
+          statusContainer.innerHTML += `<div class="status-fail">❌ ${file.name} - 上传失败: ${err}</div>`;
+        });
+        uploadPromises.push(promise);
+      }
+
+      // 等待所有上传任务完成（无论成功或失败）
+      await Promise.allSettled(uploadPromises);
+
+      statusContainer.innerHTML += '<p>所有任务已完成。</p>';
+      uploadBtn.disabled = false;
+      filesToUpload = []; // 清空待上传列表
+      updateFileList();
+
+      // **新功能: 上传完成后调用回调函数刷新列表**
+      if (typeof onUploadComplete === 'function') {
+        statusContainer.innerHTML;
+        onUploadComplete();
+      }
+    });
+
+    updateFileList();
+  }
+
+  // --- 视图定义 ---
+
+  const InitialView = {
+    html: `
+      <h2>创建新的服务器</h2><p>点击下方按钮，开始分步创建您的专属服务器。</p>
+      <button id="startCreateBtn">开始创建</button>
+    `,
+    init: () => {
+      document.getElementById('startCreateBtn').addEventListener('click', () => {
+        serverConfig = {};
+        loadView(SelectModView);
+      });
+    }
+  };
+
+  // 步骤1：选择模组
+  const SelectModView = {
+    html: `
+      <h2>选择模组</h2>
+      <div class="content-wrapper">
+        <div class="selection-area">
+          <div id="modListContainer">正在加载模组列表...</div><br>
+          <button id="showModUploaderBtn">上传新模组</button>
+        </div>
+        <div id="modUploadArea" class="upload-area">
+          <h3>上传模组文件</h3>
+          <div id="modDropZone" class="drop-zone"><p>拖动文件到此处，或点击选择</p></div>
+          <input type="file" id="modFileInput" multiple style="display: none;">
+          <h4>待上传列表：</h4>
+          <div id="modFileList" class="file-list-container"></div>
+          <div id="modUploadStatus"></div>
+          <br><button id="uploadAllModsBtn">开始上传</button>
+        </div>
+      </div>`,
+    init: function() {
+      this.renderModList(); // 初始加载列表
+      setupUploader({
+        dropZoneId: 'modDropZone', fileInputId: 'modFileInput', fileListId: 'modFileList',
+        uploadBtnId: 'uploadAllModsBtn', showUploaderBtnId: 'showModUploaderBtn',
+        uploaderAreaId: 'modUploadArea', uploadEndpoint: '/uploadmod',
+        statusContainerId: 'modUploadStatus',
+        onUploadComplete: this.renderModList // **传入刷新函数作为回调**
+      });
+    },
+    renderModList: function() {
+      const container = document.getElementById('modListContainer');
+      container.innerHTML = '正在刷新模组列表...';
+      fetch('/modlist')
+        .then(response => {
+          if (!response.ok) return ['高清修复', '小地图', '物品整理']; // Mock data
+          return response.json();
+        })
+        .then(mods => {
+          let listHtml = `<h3>可用模组</h3><div class="item-list">`;
+          mods.forEach(mod => {
+            const isChecked = serverConfig.mods && serverConfig.mods.includes(mod) ? 'checked' : '';
+            listHtml += `<label><input type="checkbox" name="mod" value="${mod}" ${isChecked}> ${mod}</label>`;
+          });
+          listHtml += `</div><br><button id="submitModsBtn">下一步</button>`;
+          container.innerHTML = listHtml;
+          document.getElementById('submitModsBtn').addEventListener('click', () => {
+            serverConfig.mods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
+            alert(`模组选择成功! 已选: ${serverConfig.mods.join(', ') || '无'}`);
+            loadView(SelectWorldView);
+          });
+        })
+        .catch(err => { container.innerHTML = '加载模组列表失败: ' + err.message; });
+    }
+  };
+
+  // 步骤2：选择世界
+  const SelectWorldView = {
+    html: `
+      <h2>选择世界</h2>
+      <div class="content-wrapper">
+        <div class="selection-area">
+          <div id="worldListContainer">正在加载世界列表...</div><br>
+          <button id="showWorldUploaderBtn">上传新世界</button>
+        </div>
+        <div id="worldUploadArea" class="upload-area">
+          <h3>上传世界文件/文件夹</h3>
+          <div id="worldDropZone" class="drop-zone"><p>拖动文件到此处，或点击选择</p></div>
+          <input type="file" id="worldFileInput" multiple style="display: none;">
+          <h4>待上传列表：</h4>
+          <div id="worldFileList" class="file-list-container"></div>
+          <div id="worldUploadStatus"></div>
+          <br><button id="uploadAllWorldsBtn">开始上传</button>
+        </div>
+      </div>`,
+    init: function() {
+      this.renderWorldList(); // 初始加载列表
+      setupUploader({
+        dropZoneId: 'worldDropZone', fileInputId: 'worldFileInput', fileListId: 'worldFileList',
+        uploadBtnId: 'uploadAllWorldsBtn', showUploaderBtnId: 'showWorldUploaderBtn',
+        uploaderAreaId: 'worldUploadArea', uploadEndpoint: '/uploadworld',
+        statusContainerId: 'worldUploadStatus',
+        onUploadComplete: this.renderWorldList // **传入刷新函数作为回调**
+      });
+    },
+    renderWorldList: function() {
+      const container = document.getElementById('worldListContainer');
+      container.innerHTML = '正在刷新世界列表...';
+      fetch('/worldlist')
+        .then(response => {
+          if (!response.ok) return ['默认世界', '超平坦世界', '空岛世界']; // Mock data
+          return response.json();
+        })
+        .then(worlds => {
+          let listHtml = `<h3>可用世界</h3><div class="item-list">`;
+          worlds.forEach((world, index) => {
+            const isChecked = serverConfig.world === world ? 'checked' : (index === 0 && !serverConfig.world ? 'checked' : '');
+            listHtml += `<label><input type="radio" name="world" value="${world}" ${isChecked}> ${world}</label>`;
+          });
+          listHtml += `</div><br><button id="submitWorldBtn">下一步</button>`;
+          container.innerHTML = listHtml;
+          document.getElementById('submitWorldBtn').addEventListener('click', () => {
+            const selected = document.querySelector('input[name="world"]:checked');
+            if (!selected) { alert('请选择一个世界！'); return; }
+            serverConfig.world = selected.value;
+            alert(`世界 "${serverConfig.world}" 选择成功!`);
+            loadView(ServerSettingsView);
+          });
+        })
+        .catch(err => { container.innerHTML = '加载世界列表失败: ' + err.message; });
+    }
+  };
+
+  // 步骤3：服务器设置
+  const ServerSettingsView = {
+    html: `
+      <h2>服务器设置</h2>
+      <div class="form-group"><label for="maxPlayers">最大玩家数</label><input type="number" id="maxPlayers" value="8"></div>
+      <div class="form-group"><label for="serverPort">服务器端口</label><input type="number" id="serverPort" value="7777"></div>
+      <div class="form-group"><label for="serverPassword">服务器密码 (可选)</label><input type="password" id="serverPassword" placeholder="留空则无密码"></div>
+      <button id="createBtn">确认创建</button>`,
+    init: () => {
+      document.getElementById('createBtn').addEventListener('click', () => {
+        serverConfig.maxPlayers = document.getElementById('maxPlayers').value;
+        serverConfig.port = document.getElementById('serverPort').value;
+        serverConfig.password = document.getElementById('serverPassword').value;
+        console.log('最终配置, 提交到 /create:', serverConfig);
+        alert('正在提交最终配置到 /create...');
+        fetch('/create', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(serverConfig)
+        })
+        .then(res => {
+          if(!res.ok) throw new Error("模拟创建失败");
+          alert('服务器创建成功！');
+          loadView(InitialView);
+        }).catch(err => alert(err.message));
+      });
+    }
+  };
+
+  const ServerListView = {
+    html: `<h2>服务器列表</h2><p>这里是服务器列表内容，目前是静态的。</p>`,
+    init: () => console.log("服务器列表视图已加载。")
+  };
+
+  const loadView = (view) => {
+    contentArea.innerHTML = view.html;
+    if (typeof view.init === 'function') view.init.bind(view)(); // 绑定 this 到 view 对象
+  };
+
+  const setActive = (selectedBtn) => {
+    [btnCreate, btnList].forEach(btn => btn.classList.remove('active'));
+    selectedBtn.classList.add('active');
+  };
+
+  btnCreate.addEventListener('click', () => { setActive(btnCreate); loadView(InitialView); });
+  btnList.addEventListener('click', () => { setActive(btnList); loadView(ServerListView); });
+
+  loadView(InitialView);
+});
+</script>
+
+</body>
+</html>
