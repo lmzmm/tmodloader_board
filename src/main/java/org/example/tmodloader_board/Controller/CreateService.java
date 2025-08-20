@@ -1,6 +1,7 @@
 package org.example.tmodloader_board.Controller;
 
 import org.example.tmodloader_board.DTO.GameConfig;
+import org.example.tmodloader_board.Service.ControlService;
 import org.example.tmodloader_board.Service.FileService;
 import org.example.tmodloader_board.Service.StartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,8 @@ public class CreateService {
     private FileService fileService;
     @Autowired
     private  StartService startService;
-
+    @Autowired
+    private ControlService controlService;
 
     public void setPath(){
         String os = System.getProperty("os.name").toLowerCase();
@@ -81,4 +83,9 @@ public class CreateService {
         String filename = ".wld";
         return fileService.getfilelist(path, filename);
     }
+
+//    @PostMapping("/test1")
+//    public String test1(){
+//        System.out.println(controlService.getPlayersOnline());
+//    }
 }
