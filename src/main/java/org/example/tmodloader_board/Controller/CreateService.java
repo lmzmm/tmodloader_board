@@ -35,12 +35,12 @@ public class CreateService {
         if (!os.contains("win")){
             this.tmodloaderPath = "/home/abc/.local/share/Terraria/tModLoader/";
             this.modPath = this.tmodloaderPath + "Mods/";
-            this.worldPath = this.tmodloaderPath + "World/";
+            this.worldPath = this.tmodloaderPath + "Worlds/";
         }
         else {
             this.tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
             this.modPath = this.tmodloaderPath + "Mods\\";
-            this.worldPath = this.tmodloaderPath + "World\\";
+            this.worldPath = this.tmodloaderPath + "Worlds\\";
         }
     }
 
