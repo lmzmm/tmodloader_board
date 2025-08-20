@@ -8,6 +8,7 @@ public class GameConfig {
     private String port;
     private String password;
 
+
     // getter 和 setter（Lombok的话用 @Data 就行）
     public List<String> getMods() {
         return mods;
@@ -22,7 +23,7 @@ public class GameConfig {
     }
 
     public void setWorld(String world) {
-        this.world ="-world D:\\文档\\My Games\\Terraria\\tModLoader\\Worlds\\" + world;
+        this.world =world;
     }
 
     public String getMaxPlayers() {
