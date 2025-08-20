@@ -22,42 +22,32 @@ public class ControlService {
 
     /**
      * 向指定的 tmux 会话发送一条指令。
-     *
-     * @param sessionName 目标 tmux 会话名。
-     * @param commandString 要发送的指令, 例如 "playing"。
      */
     public void sendCommand(String sessionName, String commandString) throws IOException, InterruptedException {
-        // 【重点】所有控制命令都依赖于一个精确的 sessionName 来定位目标服务器。
         List<String> command = new ArrayList<>();
         command.add("tmux");
         command.add("send-keys");
-        command.add("-t"); // -t 用于指定目标会话
+        command.add("-t");
         command.add(sessionName);
         command.add(commandString);
-        // 【重点】"C-m" 是 Control-M 的缩写，代表回车键。发送命令后必须模拟回车，否则命令不会被执行。
         command.add("C-m");
 
         Process p = new ProcessBuilder(command).start();
-        p.waitFor(5, TimeUnit.SECONDS); // 等待命令执行完毕
+        p.waitFor(5, TimeUnit.SECONDS);
     }
 
     /**
      * 从指定的 tmux 会话中抓取最新的屏幕输出内容。
-     *
-     * @param sessionName    目标 tmux 会话名。
-     * @param linesToCapture 要抓取的最新行数。
-     * @return 包含屏幕输出内容的字符串。
      */
     public String getTmuxOutput(String sessionName, int linesToCapture) throws IOException, InterruptedException {
         List<String> command = new ArrayList<>();
         command.add("tmux");
         command.add("capture-pane");
-        // 【重点】"-p" 参数让 tmux 将捕获的内容打印到标准输出(stdout)，这样我们的 Java 程序才能读到它。
         command.add("-p");
         command.add("-t");
         command.add(sessionName);
-        command.add("-S"); // -S 指定开始行
-        command.add("-" + linesToCapture); // 负数表示从末尾倒数，例如 -100 表示最新的 100 行。
+        command.add("-S");
+        command.add("-" + linesToCapture);
 
         Process process = new ProcessBuilder(command).start();
 
@@ -79,27 +69,23 @@ public class ControlService {
 
     /**
      * 获取指定服务器上的在线玩家列表。
-     *
-     * @param sessionName 服务器所在的 tmux 会话名。
-     * @return 一个包含玩家名称的 List<String>。
      */
     public List<String> getPlayersOnline(String sessionName) throws IOException, InterruptedException {
         sendCommand(sessionName, "playing");
         Thread.sleep(500); // 等待服务器响应
         String output = getTmuxOutput(sessionName, 30);
+        // 【重点】调用下面已修改的解析方法
         return parsePlayerList(output);
     }
 
     /**
      * 优雅地停止服务器。
-     * @param sessionName 服务器所在的 tmux 会话名。
      */
     public void stopServer(String sessionName) throws IOException, InterruptedException {
         if (isSessionRunning(sessionName)) {
             System.out.println("正在向会话 '" + sessionName + "' 发送 'exit' 命令以关闭服务器...");
             sendCommand(sessionName, "exit");
-            Thread.sleep(2000); // 等待进程优雅退出
-            // (可选) 强制关闭以防万一
+            Thread.sleep(2000);
             if (isSessionRunning(sessionName)) {
                 new ProcessBuilder("tmux", "kill-session", "-t", sessionName).start();
             }
@@ -114,12 +100,8 @@ public class ControlService {
 
     /**
      * 检查指定的 tmux 会话当前是否正在运行。
-     *
-     * @param sessionName 要检查的会话名。
-     * @return 如果正在运行，返回 true。
      */
     public boolean isSessionRunning(String sessionName) throws IOException, InterruptedException {
-        // 【重点】"tmux has-session" 是一个专门用来检查会话是否存在的命令。
         Process process = new ProcessBuilder("tmux", "has-session", "-t", sessionName).start();
         process.waitFor(5, TimeUnit.SECONDS);
         return process.exitValue() == 0;
@@ -127,20 +109,30 @@ public class ControlService {
 
     /**
      * 私有辅助方法，从 tModLoader 的原始输出中解析出玩家列表。
+     * 此方法已根据实际输出格式 ": PlayerName (IP:Port)" 进行重写。
+     *
+     * @param rawOutput 从 tmux 抓取的原始文本。
+     * @return 解析后的玩家名列表。
      */
     private List<String> parsePlayerList(String rawOutput) {
         List<String> players = new ArrayList<>();
-        boolean playerSectionFound = false;
-        for (String line : rawOutput.split(System.lineSeparator())) {
+        String[] lines = rawOutput.split(System.lineSeparator());
+
+        for (String line : lines) {
             String trimmedLine = line.trim();
-            if (playerSectionFound) {
-                if (trimmedLine.isEmpty() || trimmedLine.startsWith(">")) {
-                    break;
+
+            // 1. 检查行是否以 ": " 开头。
+            // 2. 检查行是否包含 " ("，这是玩家名和IP地址的分隔符。
+            if (trimmedLine.startsWith(": ") && trimmedLine.contains(" (")) {
+                try {
+                    // 玩家名是从第3个字符(索引为2)开始，直到 " (" 出现之前的位置。
+                    int nameEndIndex = trimmedLine.indexOf(" (");
+                    String playerName = trimmedLine.substring(2, nameEndIndex);
+                    players.add(playerName);
+                } catch (Exception e) {
+                    // 如果解析出现意外，打印错误但程序不中断
+                    System.err.println("解析玩家行时出错: " + trimmedLine);
                 }
-                players.add(trimmedLine);
-            }
-            if (trimmedLine.equalsIgnoreCase("Players:")) {
-                playerSectionFound = true;
             }
         }
         return players;

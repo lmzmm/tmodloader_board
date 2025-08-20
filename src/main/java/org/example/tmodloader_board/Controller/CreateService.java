@@ -84,8 +84,16 @@ public class CreateService {
         return fileService.getfilelist(path, filename);
     }
 
-//    @PostMapping("/test1")
-//    public String test1(){
-//        System.out.println(controlService.getPlayersOnline());
-//    }
+    @PostMapping("/test1")
+    public String test1(){
+        try {
+            System.out.println(controlService.getPlayersOnline("tmodloader-20250715.wld"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return "OK";
+    }
+
 }
