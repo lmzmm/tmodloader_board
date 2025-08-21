@@ -1,5 +1,6 @@
 package com.tModLoader_Board.Service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,12 +15,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class StartService {
 
-    // 【重点】依赖注入 ControlService，以便在启动前检查服务器状态。
-    private final ControlService controlService;
-
-    public StartService(ControlService controlService) {
-        this.controlService = controlService;
-    }
+    @Autowired
+    private ControlService controlService;
 
     /**
      * 启动 tModLoader 服务器。

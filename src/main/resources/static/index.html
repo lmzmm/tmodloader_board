@@ -455,8 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (confirm(`您确定要停止服务器 "${sessionName}" 吗？`)) {
             // 在这里添加调用“停止服务器”API的 fetch 代码
             alert(`正在发送停止指令到 ${sessionName}... (后端API待实现)`);
-            // fetch(`/server/stop?sessionName=${sessionName}`, { method: 'POST' })
-            //   .then(...)
+            fetch(`/stop?sessionName=${sessionName}`, { method: 'POST' })
+
           }
         }
 
