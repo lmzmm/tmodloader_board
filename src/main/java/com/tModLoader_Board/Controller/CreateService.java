@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 public class CreateService {
 
-    private String tmodloaderPath;
     private String modPath;
     private String worldPath;
 
@@ -32,15 +31,16 @@ public class CreateService {
     public void setPath(){
         String os = System.getProperty("os.name").toLowerCase();
         // 根据不同的系统执行不同的命令
+        String tmodloaderPath;
         if (!os.contains("win")){
-            this.tmodloaderPath = "/home/abc/.local/share/Terraria/tModLoader/";
-            this.modPath = this.tmodloaderPath + "Mods/";
-            this.worldPath = this.tmodloaderPath + "Worlds/";
+            tmodloaderPath = "/home/abc/.local/share/Terraria/tModLoader/";
+            this.modPath = tmodloaderPath + "Mods/";
+            this.worldPath = tmodloaderPath + "Worlds/";
         }
         else {
-            this.tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
-            this.modPath = this.tmodloaderPath + "Mods\\";
-            this.worldPath = this.tmodloaderPath + "Worlds\\";
+            tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
+            this.modPath = tmodloaderPath + "Mods\\";
+            this.worldPath = tmodloaderPath + "Worlds\\";
         }
     }
 
@@ -61,8 +61,11 @@ public class CreateService {
         System.out.println(config.getWorld());
         try {
             startService.startServer(config.getWorld(), config.getMaxPlayers(), config.getPort(), config.getPassword());
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
+        }
+        try {
+            Thread.sleep(20000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -87,10 +90,8 @@ public class CreateService {
     @PostMapping("/test1")
     public String test1(){
         try {
-            System.out.println(controlService.getPlayersOnline("tmodloader-20250715_wld"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+            System.out.println(controlService.getPlayersOnline("tmodloader-20250715"));
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         return "OK";

@@ -63,6 +63,32 @@
   .form-group { margin-bottom: 15px; }
   .form-group label { display: block; margin-bottom: 5px; }
   .form-group input { width: 300px; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; }
+  .server-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+.server-item span {
+  font-weight: bold;
+  color: #34495e;
+}
+.server-item .actions button {
+  margin-left: 10px; /* 改为 margin-left */
+  margin-right: 0;
+  padding: 8px 15px;
+  font-size: 14px;
+}
+.server-item .actions .btn-stop {
+  background-color: #e74c3c;
+}
+.server-item .actions .btn-stop:hover {
+  background-color: #c0392b;
+}
 </style>
 </head>
 <body>
@@ -373,8 +399,75 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const ServerListView = {
-    html: `<h2>服务器列表</h2><p>这里是服务器列表内容，目前是静态的。</p>`,
-    init: () => console.log("服务器列表视图已加载。")
+    html: `
+      <h2>服务器列表</h2>
+      <div id="serverListContainer">正在加载服务器列表...</div>
+    `,
+    init: function() {
+      const container = document.getElementById('serverListContainer');
+
+      // 使用 fetch 从后端获取服务器列表
+      fetch('/serverlist')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('无法连接到服务器或服务器返回错误。');
+          }
+          return response.json();
+        })
+        .then(serverList => {
+          if (serverList.length === 0) {
+            container.innerHTML = '<p>当前没有正在运行的服务器。</p>';
+            return;
+          }
+
+          // 如果获取到数据，动态构建列表
+          let listHtml = '';
+          serverList.forEach(sessionName => {
+            listHtml += `
+              <div class="server-item">
+                <span>${sessionName}</span>
+                <div class="actions">
+                  <button class="btn-players" data-session="${sessionName}">查看玩家</button>
+                  <button class="btn-stop" data-session="${sessionName}">停止</button>
+                </div>
+              </div>
+            `;
+          });
+          container.innerHTML = listHtml;
+
+          // 【重要】为所有新创建的按钮添加事件监听器
+          this.addEventListeners(container);
+        })
+        .catch(err => {
+          container.innerHTML = `<p style="color: red;">加载服务器列表失败: ${err.message}</p>`;
+        });
+    },
+
+    // 将事件监听逻辑封装成一个方法，使代码更清晰
+    addEventListeners: function(container) {
+      container.addEventListener('click', (event) => {
+        const target = event.target;
+        const sessionName = target.dataset.session;
+
+        if (!sessionName) return; // 如果点击的不是按钮，则忽略
+
+        if (target.classList.contains('btn-stop')) {
+          if (confirm(`您确定要停止服务器 "${sessionName}" 吗？`)) {
+            // 在这里添加调用“停止服务器”API的 fetch 代码
+            alert(`正在发送停止指令到 ${sessionName}... (后端API待实现)`);
+            // fetch(`/server/stop?sessionName=${sessionName}`, { method: 'POST' })
+            //   .then(...)
+          }
+        }
+
+        if (target.classList.contains('btn-players')) {
+          // 在这里添加调用“查看玩家”API的 fetch 代码
+          alert(`正在查询 ${sessionName} 的玩家列表... (后端API待实现)`);
+          // fetch(`/server/players?sessionName=${sessionName}`)
+          //   .then(...)
+        }
+      });
+    }
   };
 
   const loadView = (view) => {

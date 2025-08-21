@@ -137,4 +137,45 @@ public class ControlService {
         }
         return players;
     }
+
+    /**
+     * 获取所有正在运行的 tModLoader 服务器 tmux 会话列表。
+     *
+     * @return 一个包含所有 tModLoader 会话名称的 List<String>。
+     */
+    public List<String> getServerList() throws IOException, InterruptedException {
+        List<String> serverList = new ArrayList<>();
+        List<String> command = new ArrayList<>();
+        command.add("tmux");
+        command.add("ls"); // "ls" 命令用于列出所有会话
+
+        Process process = new ProcessBuilder(command).start();
+
+        // 读取 tmux ls 的输出
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // tmux ls 的输出格式通常是: "session_name: 1 windows (created ...)"
+                // 我们需要提取冒号 ":" 之前的部分
+                int colonIndex = line.indexOf(':');
+                if (colonIndex != -1) {
+                    String sessionName = line.substring(0, colonIndex);
+                    // 根据我们创建会话的命名约定，只添加 tmodloader 的会话
+                    if (sessionName.startsWith("tmodloader-")) {
+                        serverList.add(sessionName);
+                    }
+                }
+            }
+        }
+
+        process.waitFor(5, TimeUnit.SECONDS);
+
+        // 如果 tmux 命令执行失败 (例如 tmux 服务未运行)，返回空列表
+        if (process.exitValue() != 0) {
+            System.err.println("执行 'tmux ls' 失败，可能 tmux 服务未运行。");
+            return new ArrayList<>(); // 返回空列表而不是null，更安全
+        }
+
+        return serverList;
+    }
 }
