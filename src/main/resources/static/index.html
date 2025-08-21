@@ -36,7 +36,7 @@
     color: #2c3e50; border-bottom: 2px solid #bdc3c7; padding-bottom: 10px;
   }
   .content-wrapper { display: flex; gap: 20px; }
-  .selection-area { flex-grow: 1; }
+  .selection-area, .control-panel { flex-grow: 1; }
   .upload-area {
     width: 350px; flex-shrink: 0; background-color: #ffffff;
     border: 1px solid #bdc3c7; border-radius: 5px; padding: 15px;
@@ -57,38 +57,43 @@
     font-size: 14px;
   }
   .file-list-container div { padding: 5px; background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; }
-  #uploadStatus { margin-top: 15px; font-size: 14px; }
   .status-success { color: #27ae60; }
   .status-fail { color: #c0392b; }
-  .form-group { margin-bottom: 15px; }
-  .form-group label { display: block; margin-bottom: 5px; }
-  .form-group input { width: 300px; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; }
-  .server-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-bottom: 10px;
-}
-.server-item span {
-  font-weight: bold;
-  color: #34495e;
-}
-.server-item .actions button {
-  margin-left: 10px; /* 改为 margin-left */
-  margin-right: 0;
-  padding: 8px 15px;
-  font-size: 14px;
-}
-.server-item .actions .btn-stop {
-  background-color: #e74c3c;
-}
-.server-item .actions .btn-stop:hover {
-  background-color: #c0392b;
-}
+  .form-group, .control-group { margin-bottom: 15px; }
+  .form-group label, .control-group label { display: block; margin-bottom: 5px; }
+  .form-group input, .control-group input { width: 300px; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; }
+  .server-item, .player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  .server-item span, .player-item span {
+    font-weight: bold;
+    color: #34495e;
+  }
+  .actions button {
+    margin-left: 10px;
+    margin-right: 0;
+    padding: 8px 15px;
+    font-size: 14px;
+  }
+  .actions .btn-stop, .actions .btn-ban {
+    background-color: #e74c3c;
+  }
+  .actions .btn-stop:hover, .actions .btn-ban:hover {
+    background-color: #c0392b;
+  }
+  .actions .btn-kick {
+    background-color: #f39c12;
+  }
+  .actions .btn-kick:hover {
+    background-color: #d35400;
+  }
 </style>
 </head>
 <body>
@@ -98,9 +103,7 @@
     <button id="btnCreateServer" class="active">创建服务器</button>
     <button id="btnServerList">服务器列表</button>
   </div>
-  <div class="content" id="contentArea">
-    <!-- 内容将通过JS动态加载 -->
-  </div>
+  <div class="content" id="contentArea"></div>
 </div>
 
 <script>
@@ -111,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnList = document.getElementById('btnServerList');
 
   let serverConfig = {};
+
 
   // --- 通用上传逻辑处理器 ---
   function setupUploader(options) {
@@ -398,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  const ServerListView = {
+   const ServerListView = {
     html: `
       <h2>服务器列表</h2>
       <div id="serverListContainer">正在加载服务器列表...</div>
@@ -406,12 +410,9 @@ document.addEventListener('DOMContentLoaded', () => {
     init: function() {
       const container = document.getElementById('serverListContainer');
 
-      // 使用 fetch 从后端获取服务器列表
       fetch('/serverlist')
         .then(response => {
-          if (!response.ok) {
-            throw new Error('无法连接到服务器或服务器返回错误。');
-          }
+          if (!response.ok) throw new Error('无法连接到服务器。');
           return response.json();
         })
         .then(serverList => {
@@ -419,15 +420,13 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '<p>当前没有正在运行的服务器。</p>';
             return;
           }
-
-          // 如果获取到数据，动态构建列表
           let listHtml = '';
           serverList.forEach(sessionName => {
             listHtml += `
               <div class="server-item">
                 <span>${sessionName}</span>
                 <div class="actions">
-                  <button class="btn-players" data-session="${sessionName}">查看玩家</button>
+                  <button class="btn-enter" data-session="${sessionName}">进入管理</button>
                   <button class="btn-stop" data-session="${sessionName}">停止</button>
                 </div>
               </div>
@@ -435,44 +434,177 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           container.innerHTML = listHtml;
 
-          // 【重要】为所有新创建的按钮添加事件监听器
-          this.addEventListeners(container);
+          container.addEventListener('click', (event) => {
+            const target = event.target;
+            const sessionName = target.dataset.session;
+            if (!sessionName) return;
+
+            if (target.classList.contains('btn-enter')) {
+              // 进入管理视图
+              loadView(ServerControlView, { sessionName });
+
+            } else if (target.classList.contains('btn-stop')) {
+              // 停止服务器
+              if (confirm(`您确定要停止服务器 "${sessionName}" 吗？`)) {
+                fetch(`/stop?sessionName=${encodeURIComponent(sessionName)}`, {
+                  method: 'POST'
+                })
+                .then(res => {
+                  if (!res.ok) {
+                    return res.text().then(text => { throw new Error(text || '操作失败'); });
+                  }
+                  return res.text();
+                })
+                .then(message => {
+                  alert(message); // 显示成功信息
+                  this.init(); // 重新加载列表
+                })
+                .catch(err => {
+                  alert(`停止失败: ${err.message}`);
+                });
+              }
+            }
+          });
         })
         .catch(err => {
           container.innerHTML = `<p style="color: red;">加载服务器列表失败: ${err.message}</p>`;
         });
-    },
-
-    // 将事件监听逻辑封装成一个方法，使代码更清晰
-    addEventListeners: function(container) {
-      container.addEventListener('click', (event) => {
-        const target = event.target;
-        const sessionName = target.dataset.session;
-
-        if (!sessionName) return; // 如果点击的不是按钮，则忽略
-
-        if (target.classList.contains('btn-stop')) {
-          if (confirm(`您确定要停止服务器 "${sessionName}" 吗？`)) {
-            // 在这里添加调用“停止服务器”API的 fetch 代码
-            alert(`正在发送停止指令到 ${sessionName}... (后端API待实现)`);
-            fetch(`/stop?sessionName=${sessionName}`, { method: 'POST' })
-
-          }
-        }
-
-        if (target.classList.contains('btn-players')) {
-          // 在这里添加调用“查看玩家”API的 fetch 代码
-          alert(`正在查询 ${sessionName} 的玩家列表... (后端API待实现)`);
-          // fetch(`/server/players?sessionName=${sessionName}`)
-          //   .then(...)
-        }
-      });
     }
   };
 
-  const loadView = (view) => {
+  // ======================================================================
+  // 【新增】服务器控制面板视图
+  // ======================================================================
+  const ServerControlView = {
+    html: `
+      <h2>管理服务器: <span id="serverNameTitle" style="color: #3498db;"></span></h2>
+      <button id="backToServerListBtn">返回列表</button>
+      <hr>
+      <div class="control-panel">
+        <h3>在线玩家 (<span id="playerCount">0</span>)</h3>
+        <div id="playerListContainer"><p>正在加载玩家列表...</p></div>
+        <hr>
+        <h3>全服通报</h3>
+        <div class="control-group">
+          <input type="text" id="broadcastMessage" placeholder="输入要发送的消息..." style="width: 400px;">
+          <button id="sendBroadcastBtn">发送</button>
+        </div>
+      </div>
+      <div id="controlPanelStatus" style="margin-top: 15px; font-weight: bold;"></div>
+    `,
+    init: function(params) {
+      const { sessionName } = params;
+
+      const title = document.getElementById('serverNameTitle');
+      const playerCount = document.getElementById('playerCount');
+      const playerListContainer = document.getElementById('playerListContainer');
+      const backBtn = document.getElementById('backToServerListBtn');
+      const broadcastInput = document.getElementById('broadcastMessage');
+      const broadcastBtn = document.getElementById('sendBroadcastBtn');
+      const statusElement = document.getElementById('controlPanelStatus');
+
+      title.textContent = sessionName;
+
+      const renderPlayerList = () => {
+        playerListContainer.innerHTML = '<p>正在刷新玩家列表...</p>';
+        fetch(`/playerlist?sessionName=${sessionName}`)
+          .then(res => {
+            if (!res.ok) throw new Error('获取玩家列表失败');
+            return res.json();
+          })
+          .then(players => {
+            playerCount.textContent = players.length;
+            if (players.length === 0) {
+              playerListContainer.innerHTML = '<p>当前没有在线玩家。</p>';
+              return;
+            }
+            let listHtml = '';
+            players.forEach(playerFullName => {
+              listHtml += `
+                <div class="player-item">
+                  <span>${playerFullName}</span>
+                  <div class="actions">
+                    <button class="btn-kick" data-player="${playerFullName}">踢出</button>
+                    <button class="btn-ban" data-player="${playerFullName}">封禁</button>
+                  </div>
+                </div>
+              `;
+            });
+            playerListContainer.innerHTML = listHtml;
+          })
+          .catch(err => {
+            playerListContainer.innerHTML = `<p style="color: red;">${err.message}</p>`;
+          });
+      };
+
+      const handlePlayerAction = (action, playerName) => {
+        if (!confirm(`确定要 ${action === 'kick' ? '踢出' : '封禁'} 玩家 "${playerName}" 吗？`)) return;
+
+        statusElement.textContent = `正在发送 ${action} 指令...`;
+        fetch(`/server/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionName, playerName })
+        })
+        .then(res => res.text().then(text => { if (!res.ok) throw new Error(text); return text; }))
+        .then(message => {
+          statusElement.textContent = `✅ 指令成功: ${message}`;
+          setTimeout(renderPlayerList, 1000); // 1秒后刷新玩家列表
+        })
+        .catch(err => {
+          statusElement.textContent = `❌ 指令失败: ${err.message}`;
+        });
+      };
+
+      backBtn.addEventListener('click', () => loadView(ServerListView));
+
+      playerListContainer.addEventListener('click', (event) => {
+        const player = event.target.dataset.player;
+        if (!player) return;
+
+        if (event.target.classList.contains('btn-kick')) {
+          handlePlayerAction('kick', player);
+        } else if (event.target.classList.contains('btn-ban')) {
+          handlePlayerAction('ban', player);
+        }
+      });
+
+      broadcastBtn.addEventListener('click', () => {
+        const message = broadcastInput.value.trim();
+        if (!message) {
+          alert('消息不能为空！');
+          return;
+        }
+        statusElement.textContent = '正在发送通报...';
+        fetch('/server/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionName, message })
+        })
+        .then(res => res.text().then(text => { if (!res.ok) throw new Error(text); return text; }))
+        .then(text => {
+          statusElement.textContent = `✅ 通报成功发送！`;
+          broadcastInput.value = '';
+        })
+        .catch(err => {
+          statusElement.textContent = `❌ 通报失败: ${err.message}`;
+        });
+      });
+
+      renderPlayerList();
+    }
+  };
+
+
+  // ======================================================================
+  // 【修改】通用函数
+  // ======================================================================
+
+  const loadView = (view, params = {}) => {
     contentArea.innerHTML = view.html;
-    if (typeof view.init === 'function') view.init.bind(view)();
+    if (typeof view.init === 'function') {
+      view.init.bind(view)(params);
+    }
   };
 
   const setActive = (selectedBtn) => {
@@ -483,6 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCreate.addEventListener('click', () => { setActive(btnCreate); loadView(InitialView); });
   btnList.addEventListener('click', () => { setActive(btnList); loadView(ServerListView); });
 
+  // 初始加载
   loadView(InitialView);
 });
 </script>

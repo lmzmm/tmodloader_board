@@ -160,7 +160,7 @@ public class ControlService {
                 int colonIndex = line.indexOf(':');
                 if (colonIndex != -1) {
                     String sessionName = line.substring(0, colonIndex);
-                    // 根据我们创建会话的命名约定，只添加 tmodloader 的会话
+                    // 只添加 tmodloader 的会话
                     if (sessionName.startsWith("tmodloader-")) {
                         serverList.add(sessionName);
                     }
