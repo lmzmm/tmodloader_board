@@ -1,9 +1,9 @@
-package org.example.tmodloader_board.Controller;
+package com.tModLoader_Board.Controller;
 
-import org.example.tmodloader_board.DTO.GameConfig;
-import org.example.tmodloader_board.Service.ControlService;
-import org.example.tmodloader_board.Service.FileService;
-import org.example.tmodloader_board.Service.StartService;
+import com.tModLoader_Board.DTO.GameConfig;
+import com.tModLoader_Board.Service.ControlService;
+import com.tModLoader_Board.Service.FileService;
+import com.tModLoader_Board.Service.StartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -87,7 +87,7 @@ public class CreateService {
     @PostMapping("/test1")
     public String test1(){
         try {
-            System.out.println(controlService.getPlayersOnline("tmodloader-20250715.wld"));
+            System.out.println(controlService.getPlayersOnline("tmodloader-20250715_wld"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {

@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>服务器管理</title>
 <style>
-  /* 样式基本不变，微调上传状态的样式 */
   body, html {
     margin: 0; padding: 0; height: 100%;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -58,7 +57,6 @@
     font-size: 14px;
   }
   .file-list-container div { padding: 5px; background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; }
-  /* 新增：上传状态样式 */
   #uploadStatus { margin-top: 15px; font-size: 14px; }
   .status-success { color: #27ae60; }
   .status-fail { color: #c0392b; }
@@ -133,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover')));
     dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
 
-    // --- **核心改动：修改上传逻辑** ---
     uploadBtn.addEventListener('click', async () => {
       if (filesToUpload.length === 0) {
         alert('请先选择或拖拽文件！');
@@ -146,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       for (const file of filesToUpload) {
         const formData = new FormData();
-        // **关键: 后端接收的键是 'file'，且一次只传一个文件**
         formData.append('file', file);
 
         const promise = fetch(uploadEndpoint, {
@@ -172,17 +168,14 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadPromises.push(promise);
       }
 
-      // 等待所有上传任务完成（无论成功或失败）
       await Promise.allSettled(uploadPromises);
 
       statusContainer.innerHTML += '<p>所有任务已完成。</p>';
       uploadBtn.disabled = false;
-      filesToUpload = []; // 清空待上传列表
+      filesToUpload = [];
       updateFileList();
 
-      // **新功能: 上传完成后调用回调函数刷新列表**
       if (typeof onUploadComplete === 'function') {
-        statusContainer.innerHTML;
         onUploadComplete();
       }
     });
@@ -205,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 步骤1：选择模组
   const SelectModView = {
     html: `
       <h2>选择模组</h2>
@@ -225,13 +217,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`,
     init: function() {
-      this.renderModList(); // 初始加载列表
+      this.renderModList();
       setupUploader({
         dropZoneId: 'modDropZone', fileInputId: 'modFileInput', fileListId: 'modFileList',
         uploadBtnId: 'uploadAllModsBtn', showUploaderBtnId: 'showModUploaderBtn',
         uploaderAreaId: 'modUploadArea', uploadEndpoint: '/uploadmod',
         statusContainerId: 'modUploadStatus',
-        onUploadComplete: this.renderModList // **传入刷新函数作为回调**
+        onUploadComplete: this.renderModList
       });
     },
     renderModList: function() {
@@ -260,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 步骤2：选择世界
   const SelectWorldView = {
     html: `
       <h2>选择世界</h2>
@@ -280,13 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`,
     init: function() {
-      this.renderWorldList(); // 初始加载列表
+      this.renderWorldList();
       setupUploader({
         dropZoneId: 'worldDropZone', fileInputId: 'worldFileInput', fileListId: 'worldFileList',
         uploadBtnId: 'uploadAllWorldsBtn', showUploaderBtnId: 'showWorldUploaderBtn',
         uploaderAreaId: 'worldUploadArea', uploadEndpoint: '/uploadworld',
         statusContainerId: 'worldUploadStatus',
-        onUploadComplete: this.renderWorldList // **传入刷新函数作为回调**
+        onUploadComplete: this.renderWorldList
       });
     },
     renderWorldList: function() {
@@ -317,29 +308,66 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // 步骤3：服务器设置
   const ServerSettingsView = {
     html: `
       <h2>服务器设置</h2>
       <div class="form-group"><label for="maxPlayers">最大玩家数</label><input type="number" id="maxPlayers" value="8"></div>
       <div class="form-group"><label for="serverPort">服务器端口</label><input type="number" id="serverPort" value="7777"></div>
       <div class="form-group"><label for="serverPassword">服务器密码 (可选)</label><input type="password" id="serverPassword" placeholder="留空则无密码"></div>
-      <button id="createBtn">确认创建</button>`,
+      <div id="actionButtons">
+        <button id="createBtn">确认创建</button>
+        <button id="backToStartBtn" style="display: none;">返回首页</button>
+      </div>
+      <div id="creationStatus" style="margin-top: 15px; font-weight: bold;"></div>
+    `,
     init: () => {
-      document.getElementById('createBtn').addEventListener('click', () => {
+      const createBtn = document.getElementById('createBtn');
+      const backToStartBtn = document.getElementById('backToStartBtn');
+      const statusElement = document.getElementById('creationStatus');
+
+      backToStartBtn.addEventListener('click', () => {
+        loadView(InitialView);
+      });
+
+      createBtn.addEventListener('click', () => {
         serverConfig.maxPlayers = document.getElementById('maxPlayers').value;
         serverConfig.port = document.getElementById('serverPort').value;
         serverConfig.password = document.getElementById('serverPassword').value;
+
         console.log('最终配置, 提交到 /create:', serverConfig);
-        alert('正在提交最终配置到 /create...');
+
+        createBtn.disabled = true;
+        statusElement.style.color = '#2c3e50';
+        statusElement.textContent = '正在创建服务器，请稍候...';
+
         fetch('/create', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(serverConfig)
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(serverConfig)
         })
         .then(res => {
-          if(!res.ok) throw new Error("模拟创建失败");
-          alert('服务器创建成功！');
-          loadView(InitialView);
-        }).catch(err => alert(err.message));
+          if (!res.ok) {
+            return res.text().then(text => {
+              throw new Error(text || '服务器返回错误，但没有提供具体信息。');
+            });
+          }
+          return res.text();
+        })
+        .then(text => {
+          if (text.trim().toUpperCase() === 'OK') {
+            statusElement.style.color = '#27ae60';
+            statusElement.textContent = '✅ 服务器创建完成！';
+            createBtn.style.display = 'none';
+            backToStartBtn.style.display = 'inline-block';
+          } else {
+            throw new Error(`创建失败: ${text}`);
+          }
+        })
+        .catch(err => {
+          statusElement.style.color = '#c0392b';
+          statusElement.textContent = `❌ 创建失败: ${err.message}`;
+          createBtn.disabled = false;
+        });
       });
     }
   };
@@ -351,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadView = (view) => {
     contentArea.innerHTML = view.html;
-    if (typeof view.init === 'function') view.init.bind(view)(); // 绑定 this 到 view 对象
+    if (typeof view.init === 'function') view.init.bind(view)();
   };
 
   const setActive = (selectedBtn) => {

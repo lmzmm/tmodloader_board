@@ -1,4 +1,4 @@
-package org.example.tmodloader_board.Service;
+package com.tModLoader_Board.Service;
 
 import org.springframework.stereotype.Service;
 
@@ -46,7 +46,7 @@ public class StartService {
             // --- Linux 平台的启动逻辑 ---
 
             // 【重点】根据世界名生成一个干净、唯一的会话名。
-            String sessionName = "tmodloader-" + world.replaceAll("[^a-zA-Z0-9_.-]", "");
+            String sessionName = "tmodloader-" + world.substring(0, world.length() - 4).replaceAll("[^a-zA-Z0-9_.-]", "");
 
             // 【重点】调用 ControlService 来检查会话是否已存在。
             if (controlService.isSessionRunning(sessionName)) {

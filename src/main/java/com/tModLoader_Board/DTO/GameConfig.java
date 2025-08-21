@@ -1,4 +1,4 @@
-package org.example.tmodloader_board.DTO;
+package com.tModLoader_Board.DTO;
 import java.util.List;
 
 public class GameConfig {

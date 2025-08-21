@@ -1,4 +1,4 @@
-package org.example.tmodloader_board.Service;
+package com.tModLoader_Board.Service;
 
 import org.springframework.stereotype.Service;
 
