@@ -94,6 +94,13 @@
   .actions .btn-kick:hover {
     background-color: #d35400;
   }
+  #backToServerListBtn {
+    margin-top: 20px;
+    background-color: #7f8c8d;
+  }
+  #backToServerListBtn:hover {
+    background-color: #95a5a6;
+  }
 </style>
 </head>
 <body>
@@ -115,8 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let serverConfig = {};
 
-
-  // --- 通用上传逻辑处理器 ---
   function setupUploader(options) {
     const {
       dropZoneId, fileInputId, fileListId, uploadBtnId, showUploaderBtnId,
@@ -212,8 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateFileList();
   }
-
-  // --- 视图定义 ---
 
   const InitialView = {
     html: `
@@ -402,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-   const ServerListView = {
+  const ServerListView = {
     html: `
       <h2>服务器列表</h2>
       <div id="serverListContainer">正在加载服务器列表...</div>
@@ -440,11 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!sessionName) return;
 
             if (target.classList.contains('btn-enter')) {
-              // 进入管理视图
               loadView(ServerControlView, { sessionName });
 
             } else if (target.classList.contains('btn-stop')) {
-              // 停止服务器
               if (confirm(`您确定要停止服务器 "${sessionName}" 吗？`)) {
                 fetch(`/stop?sessionName=${encodeURIComponent(sessionName)}`, {
                   method: 'POST'
@@ -456,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   return res.text();
                 })
                 .then(message => {
-                  alert(message); // 显示成功信息
+                  alert(message);
                   this.init(); // 重新加载列表
                 })
                 .catch(err => {
@@ -472,25 +473,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // ======================================================================
-  // 【新增】服务器控制面板视图
-  // ======================================================================
   const ServerControlView = {
     html: `
       <h2>管理服务器: <span id="serverNameTitle" style="color: #3498db;"></span></h2>
-      <button id="backToServerListBtn">返回列表</button>
-      <hr>
+
       <div class="control-panel">
-        <h3>在线玩家 (<span id="playerCount">0</span>)</h3>
-        <div id="playerListContainer"><p>正在加载玩家列表...</p></div>
-        <hr>
         <h3>全服通报</h3>
         <div class="control-group">
           <input type="text" id="broadcastMessage" placeholder="输入要发送的消息..." style="width: 400px;">
           <button id="sendBroadcastBtn">发送</button>
         </div>
       </div>
+      <hr>
+
+      <div class="control-panel">
+        <h3>在线玩家 (<span id="playerCount">0</span>)</h3>
+        <div id="playerListContainer"><p>正在加载玩家列表...</p></div>
+      </div>
+      <hr>
+
       <div id="controlPanelStatus" style="margin-top: 15px; font-weight: bold;"></div>
+      <button id="backToServerListBtn">返回列表</button>
     `,
     init: function(params) {
       const { sessionName } = params;
@@ -549,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.text().then(text => { if (!res.ok) throw new Error(text); return text; }))
         .then(message => {
           statusElement.textContent = `✅ 指令成功: ${message}`;
-          setTimeout(renderPlayerList, 1000); // 1秒后刷新玩家列表
+          setTimeout(renderPlayerList, 1000);
         })
         .catch(err => {
           statusElement.textContent = `❌ 指令失败: ${err.message}`;
@@ -596,10 +599,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
 
-  // ======================================================================
-  // 【修改】通用函数
-  // ======================================================================
-
   const loadView = (view, params = {}) => {
     contentArea.innerHTML = view.html;
     if (typeof view.init === 'function') {
@@ -615,7 +614,6 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCreate.addEventListener('click', () => { setActive(btnCreate); loadView(InitialView); });
   btnList.addEventListener('click', () => { setActive(btnList); loadView(ServerListView); });
 
-  // 初始加载
   loadView(InitialView);
 });
 </script>
