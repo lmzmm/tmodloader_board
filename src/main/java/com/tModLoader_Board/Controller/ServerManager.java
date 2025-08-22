@@ -1,5 +1,6 @@
 package com.tModLoader_Board.Controller;
 
+import com.tModLoader_Board.DTO.PlayerManager;
 import com.tModLoader_Board.DTO.ServerMessage;
 import com.tModLoader_Board.Service.ControlService;
 import com.tModLoader_Board.Service.PlayerService;
@@ -35,6 +36,12 @@ public class ServerManager {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+        return "OK";
+    }
+
+    @PostMapping("/manage/kickOrban)")
+    public String kickOrban(@RequestBody PlayerManager playerManager) {
+        playerService.kickOrBanPlayer(playerManager.getPlayerName(), playerManager.getSessionName(), playerManager.getAction());
         return "OK";
     }
 

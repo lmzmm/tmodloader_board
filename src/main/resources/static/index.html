@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(`/manage/${action}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionName, playerName })
+          body: JSON.stringify({ sessionName, playerName, action })
         })
         .then(res => res.text().then(text => { if (!res.ok) throw new Error(text); return text; }))
         .then(message => {
