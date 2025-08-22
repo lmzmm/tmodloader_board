@@ -39,7 +39,17 @@ public class ControlService {
     /**
      * 从指定的 tmux 会话中抓取最新的屏幕输出内容。
      */
-    public String getTmuxOutput(String sessionName, int linesToCapture) throws IOException, InterruptedException {
+        /**
+     * 【重写后】智能地抓取指定命令的输出。
+     * 此方法会从下往上查找包含 commandString 的行，并只返回该行之后的所有内容。
+     *
+     * @param commandString  您刚刚发送的命令（例如 "playing"），用于在输出中定位。
+     * @param sessionName    目标 tmux 会话名。
+     * @param linesToCapture 要抓取的最新行数（这个数字应足够大以包含命令和其完整输出）。
+     * @return               命令的精确输出。如果找不到命令，则返回空字符串。
+     */
+    public String getTmuxOutput(String commandString, String sessionName, int linesToCapture) throws IOException, InterruptedException {
+        // 步骤 1: 像以前一样，执行 tmux capture-pane 获取原始输出
         List<String> command = new ArrayList<>();
         command.add("tmux");
         command.add("capture-pane");
@@ -51,16 +61,42 @@ public class ControlService {
 
         Process process = new ProcessBuilder(command).start();
 
-        StringBuilder output = new StringBuilder();
+        StringBuilder rawOutputBuilder = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                output.append(line).append(System.lineSeparator());
+                rawOutputBuilder.append(line).append(System.lineSeparator());
+            }
+        }
+        process.waitFor(5, TimeUnit.SECONDS);
+        String rawOutput = rawOutputBuilder.toString();
+
+        // 步骤 2: 将原始输出分割成行数组
+        String[] lines = rawOutput.split(System.lineSeparator());
+
+        // 步骤 3: 从下往上遍历，查找包含命令的行
+        int commandLineIndex = -1;
+        for (int i = lines.length - 1; i >= 0; i--) {
+            // A simple .contains() is usually robust enough to find the command prompt line.
+            // e.g., it will match "> playing"
+            if (lines[i].contains(commandString)) {
+                commandLineIndex = i;
+                break; // 找到最近的一次命令，停止搜索
             }
         }
 
-        process.waitFor(5, TimeUnit.SECONDS);
-        return output.toString();
+        // 步骤 4: 如果找到了命令，提取其之后的所有行
+        if (commandLineIndex != -1) {
+            StringBuilder commandResult = new StringBuilder();
+            for (int i = commandLineIndex + 1; i < lines.length; i++) {
+                commandResult.append(lines[i]).append(System.lineSeparator());
+            }
+            // 返回提取到的精确输出，并去除首尾可能存在的空白
+            return commandResult.toString().trim();
+        }
+
+        // 如果在捕获的行中找不到命令，返回空字符串
+        return "";
     }
 
     // ===================================================================================
@@ -73,7 +109,7 @@ public class ControlService {
     public List<String> getPlayersOnline(String sessionName) throws IOException, InterruptedException {
         sendCommand(sessionName, "playing");
         Thread.sleep(500); // 等待服务器响应
-        String output = getTmuxOutput(sessionName, 30);
+        String output = getTmuxOutput("playing", sessionName, 30);
         // 【重点】调用下面已修改的解析方法
         return parsePlayerList(output);
     }
