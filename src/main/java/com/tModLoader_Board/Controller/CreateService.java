@@ -60,6 +60,7 @@ public class CreateService {
     public String start(@RequestBody GameConfig config) {
         System.out.println(config.getWorld());
         try {
+            System.out.println(config.getMods());
             startService.startServer(config.getWorld(), config.getMaxPlayers(), config.getPort(), config.getPassword());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

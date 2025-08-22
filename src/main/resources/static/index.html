@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm(`确定要 ${action === 'kick' ? '踢出' : '封禁'} 玩家 "${playerName}" 吗？`)) return;
 
         statusElement.textContent = `正在发送 ${action} 指令...`;
-        fetch(`/manage/${action}`, {
+        fetch(`/manage/kickOrban)`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionName, playerName, action })
