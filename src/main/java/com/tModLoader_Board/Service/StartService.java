@@ -1,8 +1,11 @@
 package com.tModLoader_Board.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +84,38 @@ public class StartService {
                 System.err.println("启动 tmux 会话失败！");
                 return null; // 启动失败
             }
+        }
+    }
+
+    public void enableMods(List<String> modsToEnable, String MODS_PATH) throws IOException {
+        // 1. 创建 Jackson 的核心转换类 ObjectMapper
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // 2. (可选) 开启 "pretty print" 功能，让生成的 JSON 文件格式更美观，易于阅读。
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        // 3. 创建文件对象
+        File modsConfigFile = new File(MODS_PATH);
+
+        // 4. (可选但推荐) 确保父目录存在，如果不存在则创建它
+        File parentDir = modsConfigFile.getParentFile();
+        if (!parentDir.exists()) {
+            if (parentDir.mkdirs()) {
+                System.out.println("创建了新的模组配置目录: " + parentDir.getAbsolutePath());
+            } else {
+                throw new IOException("无法创建模组配置目录: " + parentDir.getAbsolutePath());
+            }
+        }
+
+        // 5. 【核心】使用 ObjectMapper 将 Java List<String> 对象直接写入到文件中
+        // Jackson 会自动处理转义、引号、逗号和方括号，生成完全合规的 JSON。
+        try {
+            objectMapper.writeValue(modsConfigFile, modsToEnable);
+            System.out.println("成功将 " + modsToEnable.size() + " 个模组写入");
+        } catch (IOException e) {
+            System.err.println("写入 enabled.json 文件时发生错误: " + e.getMessage());
+            // 将异常向上抛出，让 Controller 层来处理并返回给前端一个错误响应
+            throw e;
         }
     }
 }
