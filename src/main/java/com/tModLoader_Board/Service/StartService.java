@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 【职责】: 负责启动一个新的 tModLoader 服务器进程。
@@ -87,35 +88,52 @@ public class StartService {
         }
     }
 
-    public void enableMods(List<String> modsToEnable, String MODS_PATH) throws IOException {
-        // 1. 创建 Jackson 的核心转换类 ObjectMapper
-        ObjectMapper objectMapper = new ObjectMapper();
+    public void enableMods(List<String> modFilenames, String enabledJsonPath) throws IOException {
 
-        // 2. (可选) 开启 "pretty print" 功能，让生成的 JSON 文件格式更美观，易于阅读。
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    // --- 步骤 1: 将文件名列表转换为内部模组名列表 ---
 
-        // 3. 创建文件对象
-        File modsConfigFile = new File(MODS_PATH);
+    // 防御性编程，处理 null 输入
+    if (modFilenames == null) {
+        modFilenames = new ArrayList<>();
+    }
 
-        // 4. (可选但推荐) 确保父目录存在，如果不存在则创建它
-        File parentDir = modsConfigFile.getParentFile();
-        if (!parentDir.exists()) {
-            if (parentDir.mkdirs()) {
-                System.out.println("创建了新的模组配置目录: " + parentDir.getAbsolutePath());
-            } else {
-                throw new IOException("无法创建模组配置目录: " + parentDir.getAbsolutePath());
-            }
+    List<String> modNames = modFilenames.stream()
+            .map(filename -> filename.replaceAll("\\.tmod$", ""))
+            .collect(Collectors.toList());
+
+    System.out.println("处理后，准备写入文件的模组名: " + modNames);
+
+    // --- 步骤 2: 创建并配置 ObjectMapper 以生成美化格式的 JSON ---
+
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    // 【这是实现“每个单独一行”的关键！】
+    // 开启 INDENT_OUTPUT 功能，它会自动添加换行和缩进，生成您要的格式。
+    objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+    File modsConfigFile = new File(enabledJsonPath);
+
+    // 确保父目录存在
+    File parentDir = modsConfigFile.getParentFile();
+    if (parentDir != null && !parentDir.exists()) {
+        if (!parentDir.mkdirs()) {
+            throw new IOException("无法创建模组配置目录: " + parentDir.getAbsolutePath());
         }
+    }
 
-        // 5. 【核心】使用 ObjectMapper 将 Java List<String> 对象直接写入到文件中
-        // Jackson 会自动处理转义、引号、逗号和方括号，生成完全合规的 JSON。
-        try {
-            objectMapper.writeValue(modsConfigFile, modsToEnable);
-            System.out.println("成功将 " + modsToEnable.size() + " 个模组写入");
-        } catch (IOException e) {
-            System.err.println("写入 enabled.json 文件时发生错误: " + e.getMessage());
-            // 将异常向上抛出，让 Controller 层来处理并返回给前端一个错误响应
-            throw e;
-        }
+    // --- 步骤 3: 将处理后的模组名列表写入文件 ---
+    // objectMapper 会自动生成如下格式：
+    // [
+    //   "CalamityMod",
+    //   "BossChecklist",
+    //   "CalamityModMusic"
+    // ]
+    try {
+        objectMapper.writeValue(modsConfigFile, modNames);
+        System.out.println("成功将 " + modNames.size() + " 个模组名以【正确格式】写入到 " + enabledJsonPath);
+    } catch (IOException e) {
+        System.err.println("写入 enabled.json 文件时发生严重错误: " + e.getMessage());
+        throw e;
+    }
     }
 }
