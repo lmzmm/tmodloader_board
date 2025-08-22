@@ -61,7 +61,7 @@ public class CreateService {
         System.out.println(config.getWorld());
         try {
             System.out.println(config.getMods());
-            startService.enableMods(config.getMods(), modPath);
+            startService.enableMods(config.getMods(), modPath + "enabled.json");
             startService.startServer(config.getWorld(), config.getMaxPlayers(), config.getPort(), config.getPassword());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
