@@ -20,7 +20,7 @@ public class ServerManager {
     @Autowired
     private PlayerService playerService;
 
-    @PostMapping("/stop")
+    @PostMapping("/manage/stop")
     public String stop(@RequestParam String sessionName) {
         try {
             controlService.stopServer(sessionName);
@@ -30,7 +30,17 @@ public class ServerManager {
         return "OK";
     }
 
-    @GetMapping("/serverlist")
+    @PostMapping("/manage/broadcast")
+    public String broadcast(@RequestParam String sessionName, @RequestParam String message) {
+        try {
+            controlService.sendCommand(sessionName, "say " + message);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return "OK";
+    }
+
+    @GetMapping("/manage/serverlist")
     public List<String> ServerLis(){
         try {
             return controlService.getServerList();
@@ -39,7 +49,7 @@ public class ServerManager {
         }
     }
 
-    @GetMapping("/playerlist")
+    @GetMapping("/manage/playerlist")
     public List<String> PlayerLis(@RequestParam String sessionName){
         try {
             return controlService.getPlayersOnline(sessionName);

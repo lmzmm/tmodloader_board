@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupUploader({
         dropZoneId: 'modDropZone', fileInputId: 'modFileInput', fileListId: 'modFileList',
         uploadBtnId: 'uploadAllModsBtn', showUploaderBtnId: 'showModUploaderBtn',
-        uploaderAreaId: 'modUploadArea', uploadEndpoint: '/uploadmod',
+        uploaderAreaId: 'modUploadArea', uploadEndpoint: '/create/uploadmod',
         statusContainerId: 'modUploadStatus',
         onUploadComplete: this.renderModList
       });
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderModList: function() {
       const container = document.getElementById('modListContainer');
       container.innerHTML = '正在刷新模组列表...';
-      fetch('/modlist')
+      fetch('/create/modlist')
         .then(response => {
           if (!response.ok) return ['高清修复', '小地图', '物品整理']; // Mock data
           return response.json();
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupUploader({
         dropZoneId: 'worldDropZone', fileInputId: 'worldFileInput', fileListId: 'worldFileList',
         uploadBtnId: 'uploadAllWorldsBtn', showUploaderBtnId: 'showWorldUploaderBtn',
-        uploaderAreaId: 'worldUploadArea', uploadEndpoint: '/uploadworld',
+        uploaderAreaId: 'worldUploadArea', uploadEndpoint: '/create/uploadworld',
         statusContainerId: 'worldUploadStatus',
         onUploadComplete: this.renderWorldList
       });
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderWorldList: function() {
       const container = document.getElementById('worldListContainer');
       container.innerHTML = '正在刷新世界列表...';
-      fetch('/worldlist')
+      fetch('/create/worldlist')
         .then(response => {
           if (!response.ok) return ['默认世界', '超平坦世界', '空岛世界']; // Mock data
           return response.json();
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusElement.style.color = '#2c3e50';
         statusElement.textContent = '正在创建服务器，请稍候...';
 
-        fetch('/create', {
+        fetch('/create/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(serverConfig)
@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init: function() {
       const container = document.getElementById('serverListContainer');
 
-      fetch('/serverlist')
+      fetch('/manage/serverlist')
         .then(response => {
           if (!response.ok) throw new Error('无法连接到服务器。');
           return response.json();
@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } else if (target.classList.contains('btn-stop')) {
               if (confirm(`您确定要停止服务器 "${sessionName}" 吗？`)) {
-                fetch(`/stop?sessionName=${encodeURIComponent(sessionName)}`, {
+                fetch(`/manage/stop?sessionName=${encodeURIComponent(sessionName)}`, {
                   method: 'POST'
                 })
                 .then(res => {
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const renderPlayerList = () => {
         playerListContainer.innerHTML = '<p>正在刷新玩家列表...</p>';
-        fetch(`/playerlist?sessionName=${sessionName}`)
+        fetch(`/manage/playerlist?sessionName=${sessionName}`)
           .then(res => {
             if (!res.ok) throw new Error('获取玩家列表失败');
             return res.json();
@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm(`确定要 ${action === 'kick' ? '踢出' : '封禁'} 玩家 "${playerName}" 吗？`)) return;
 
         statusElement.textContent = `正在发送 ${action} 指令...`;
-        fetch(`/server/${action}`, {
+        fetch(`/manage/${action}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionName, playerName })
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         statusElement.textContent = '正在发送通报...';
-        fetch('/server/broadcast', {
+        fetch('/manage/broadcast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionName, message })

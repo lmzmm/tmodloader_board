@@ -44,19 +44,19 @@ public class CreateService {
         }
     }
 
-    @PostMapping("/uploadmod")
+    @PostMapping("/create/uploadmod")
     public String upload(MultipartFile file) {
         fileService.save_file(file, modPath);
         return "OK";
     }
 
-    @PostMapping("/uploadworld")
+    @PostMapping("/cteate/uploadworld")
     public String uploadworld(MultipartFile file) {
         fileService.save_file(file, worldPath);
         return "OK";
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create/create")
     public String start(@RequestBody GameConfig config) {
         System.out.println(config.getWorld());
         try {
@@ -72,7 +72,7 @@ public class CreateService {
         return "OK";
     }
 
-    @GetMapping("/modlist")
+    @GetMapping("/create/modlist")
     public List<String> modlist() {
         setPath();
         String path = modPath;
@@ -80,7 +80,7 @@ public class CreateService {
         return fileService.getfilelist(path, filename);
     }
 
-    @GetMapping("/worldlist")
+    @GetMapping("/create/worldlist")
     public List<String> worldlist() {
         String path = worldPath;
         String filename = ".wld";
