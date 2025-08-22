@@ -135,6 +135,7 @@ public class ControlService {
                 }
             }
         }
+        System.out.println(players);
         return players;
     }
 
