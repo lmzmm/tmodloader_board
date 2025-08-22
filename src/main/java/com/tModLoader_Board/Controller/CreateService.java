@@ -50,7 +50,7 @@ public class CreateService {
         return "OK";
     }
 
-    @PostMapping("/cteate/uploadworld")
+    @PostMapping("/create/uploadworld")
     public String uploadworld(MultipartFile file) {
         fileService.save_file(file, worldPath);
         return "OK";
