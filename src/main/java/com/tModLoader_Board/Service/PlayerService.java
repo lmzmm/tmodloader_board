@@ -13,7 +13,7 @@ public class PlayerService {
 
     public void kickOrBanPlayer(String playerName, String sessionName, String action) {
         try {
-            controlService.sendCommand(action + " " + playerName, sessionName);
+            controlService.sendCommand(sessionName, action + " " + playerName);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
