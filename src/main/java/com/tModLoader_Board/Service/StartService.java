@@ -56,15 +56,16 @@ public class StartService {
             }
 
             List<String> command = new ArrayList<>();
+            String tmodloaderPath = System.getProperty("user.home");
             command.add("tmux");
             command.add("new-session");
             command.add("-d");
                 command.add("-s");
             command.add(sessionName);
-            command.add("/home/abc/tmodloader/start-tModLoaderServer.sh");
+            command.add(tmodloaderPath + "/tmodloader/start-tModLoaderServer.sh");
             command.add("-nosteam");
             command.add("-world");
-            command.add("/home/abc/.local/share/Terraria/tModLoader/Worlds/" + world);
+            command.add(tmodloaderPath + "/.local/share/Terraria/tModLoader/Worlds/" + world);
             command.add("-maxplayers");
             command.add(maxPlayers);
             command.add("-port");
@@ -130,7 +131,7 @@ public class StartService {
     // ]
     try {
         objectMapper.writeValue(modsConfigFile, modNames);
-        System.out.println("成功将 " + modNames.size() + " 个模组名以【正确格式】写入到 " + enabledJsonPath);
+        System.out.println("成功将 " + modNames.size() + " 个模组名以写入到 " + enabledJsonPath);
     } catch (IOException e) {
         System.err.println("写入 enabled.json 文件时发生严重错误: " + e.getMessage());
         throw e;
