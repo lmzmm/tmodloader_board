@@ -33,17 +33,14 @@ public class CreateService {
         // 根据不同的系统执行不同的命令
         String tmodloaderPath;
         if (!os.contains("win")){
-            tmodloaderPath = "/home/abc/.local/share/Terraria/tModLoader/";
+            tmodloaderPath = System.getProperty("user.home") + "/.local/share/Terraria/tModLoader/";
             this.modPath = tmodloaderPath + "Mods/";
             this.worldPath = tmodloaderPath + "Worlds/";
         }
         else {
-            tmodloaderPath = System.getenv("TMODLOADER_PATH");
-            if (tmodloaderPath == null) {
-                tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
-                this.modPath = tmodloaderPath + "Mods\\";
-                this.worldPath = tmodloaderPath + "Worlds\\";
-            }
+            tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
+            this.modPath = tmodloaderPath + "Mods\\";
+            this.worldPath = tmodloaderPath + "Worlds\\";
         }
     }
 
