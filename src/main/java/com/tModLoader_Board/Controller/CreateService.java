@@ -38,9 +38,12 @@ public class CreateService {
             this.worldPath = tmodloaderPath + "Worlds/";
         }
         else {
-            tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
-            this.modPath = tmodloaderPath + "Mods\\";
-            this.worldPath = tmodloaderPath + "Worlds\\";
+            tmodloaderPath = System.getenv("TMODLOADER_PATH");
+            if (tmodloaderPath == null) {
+                tmodloaderPath = "E:\\project\\java\\tmodloader_board\\src\\main\\resources\\up\\";
+                this.modPath = tmodloaderPath + "Mods\\";
+                this.worldPath = tmodloaderPath + "Worlds\\";
+            }
         }
     }
 
