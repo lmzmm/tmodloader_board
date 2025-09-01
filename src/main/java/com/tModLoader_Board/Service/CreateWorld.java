@@ -63,6 +63,28 @@ public class CreateWorld {
         }
         return null;
     }
+
+    public void readAll() {
+        String r = null;
+        while (true) {
+            try {
+                r = readOutput();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (r != null) {
+                System.out.println(r);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            else {
+                break;
+            }
+        }
+    }
     
     /**
      * 停止正在运行的进程。

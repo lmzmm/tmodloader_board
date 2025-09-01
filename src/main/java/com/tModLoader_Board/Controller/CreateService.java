@@ -77,6 +77,7 @@ public class CreateService {
 
     @PostMapping("/test01")
     public String startworldcreator(){
+        createWorld.startWorldCreator();
         while (true){
             String r = null;
             try {
@@ -89,6 +90,7 @@ public class CreateService {
                 if (! r.isEmpty() && r.charAt(0) == 'm'){
                     try {
                         createWorld.sendCommand("n");
+                        createWorld.readAll();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
