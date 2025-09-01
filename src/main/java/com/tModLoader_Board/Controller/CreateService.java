@@ -89,10 +89,12 @@ public class CreateService {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            if (r != null && r.charAt(0) == 'm'){
-                return;
+            if (r != null){
+                System.out.println(r);
+                if (r.charAt(0) == 'm'){
+                    return;
+                }
             }
-            System.out.println(r);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
