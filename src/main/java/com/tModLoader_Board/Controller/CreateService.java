@@ -76,12 +76,7 @@ public class CreateService {
     }
 
     @PostMapping("/test01")
-    public void startworldcreator() {
-        createWorld.startWorldCreator();
-    }
-
-    @PostMapping("/test02")
-    public void print(){
+    public String startworldcreator(){
         while (true){
             String r = null;
             try {
@@ -92,8 +87,13 @@ public class CreateService {
             if (r != null){
                 System.out.println(r);
                 if (! r.isEmpty() && r.charAt(0) == 'm'){
+                    try {
+                        createWorld.sendCommand("n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     System.out.println("OK");
-                    return;
+                    return "OK";
                 }
             }
             try {
