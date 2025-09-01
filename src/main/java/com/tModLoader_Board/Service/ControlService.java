@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 【职责】: 负责与一个已经存在的、正在运行的 tModLoader 服务器 tmux 会话进行交互。
- * 这个服务就像一个服务器的"遥控器"。
  */
 @Service
 public class ControlService {

@@ -2,6 +2,7 @@ package com.tModLoader_Board.Controller;
 
 import com.tModLoader_Board.DTO.GameConfig;
 import com.tModLoader_Board.Service.ControlService;
+import com.tModLoader_Board.Service.CreateWorld;
 import com.tModLoader_Board.Service.FileService;
 import com.tModLoader_Board.Service.StartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class CreateService {
     @Autowired
     private  StartService startService;
     @Autowired
-    private ControlService controlService;
+    private CreateWorld createWorld;
 
     public void setPath(){
         String os = System.getProperty("os.name").toLowerCase();
@@ -74,6 +75,18 @@ public class CreateService {
         return "OK";
     }
 
+    @PostMapping("/test01")
+    public void startworldcreator() {
+        createWorld.startWorldCreator();
+        for (int i=1;i<10;i++){
+            try {
+                System.out.println(createWorld.readOutput());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     @GetMapping("/create/modlist")
     public List<String> modlist() {
         setPath();
@@ -87,16 +100,6 @@ public class CreateService {
         String path = worldPath;
         String filename = ".wld";
         return fileService.getfilelist(path, filename);
-    }
-
-    @PostMapping("/test1")
-    public String test1(){
-        try {
-            System.out.println(controlService.getPlayersOnline("tmodloader-20250715"));
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return "OK";
     }
 
 }

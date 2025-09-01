@@ -46,10 +46,10 @@ public class StartService {
         } else {
             // --- Linux 平台的启动逻辑 ---
 
-            // 【重点】根据世界名生成一个干净、唯一的会话名。
+            // 根据世界名生成一个唯一的会话名。
             String sessionName = "tmodloader-" + world.substring(0, world.length() - 4).replaceAll("[^a-zA-Z0-9_.-]", "");
 
-            // 【重点】调用 ControlService 来检查会话是否已存在。
+            // 调用 ControlService 来检查会话是否已存在。
             if (controlService.isSessionRunning(sessionName)) {
                 System.out.println("服务器会话 '" + sessionName + "' 已经在运行中，无需重复启动。");
                 return sessionName; // 返回已存在的会话名
@@ -60,7 +60,7 @@ public class StartService {
             command.add("tmux");
             command.add("new-session");
             command.add("-d");
-                command.add("-s");
+            command.add("-s");
             command.add(sessionName);
             command.add(tmodloaderPath + "/tmodloader/start-tModLoaderServer.sh");
             command.add("-nosteam");
@@ -93,7 +93,7 @@ public class StartService {
 
     // --- 步骤 1: 将文件名列表转换为内部模组名列表 ---
 
-    // 防御性编程，处理 null 输入
+    // 处理 null 输入
     if (modFilenames == null) {
         modFilenames = new ArrayList<>();
     }
@@ -108,7 +108,6 @@ public class StartService {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    // 【这是实现“每个单独一行”的关键！】
     // 开启 INDENT_OUTPUT 功能，它会自动添加换行和缩进，生成您要的格式。
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
