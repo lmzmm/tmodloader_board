@@ -21,6 +21,7 @@ public class CreateWorld {
         List<String> command = new ArrayList<>();
         System.out.println(serverPath);
         command.add(serverPath);
+        command.add("-nosteam");
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             // 将错误输出流重定向到标准输出流
