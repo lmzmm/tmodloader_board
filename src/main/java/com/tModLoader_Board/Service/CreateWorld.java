@@ -19,6 +19,7 @@ public class CreateWorld {
 
     public void startWorldCreator() {
         List<String> command = new ArrayList<>();
+        System.out.println(serverPath);
         command.add(serverPath);
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(command);
