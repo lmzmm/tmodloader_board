@@ -91,7 +91,7 @@ public class CreateService {
             }
             if (r != null){
                 System.out.println(r);
-                if (r.charAt(0) == 'm'){
+                if (! r.isEmpty() && r.charAt(0) == 'm'){
                     return;
                 }
             }
