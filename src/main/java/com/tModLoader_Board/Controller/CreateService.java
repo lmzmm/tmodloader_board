@@ -78,6 +78,10 @@ public class CreateService {
     @PostMapping("/test01")
     public void startworldcreator() {
         createWorld.startWorldCreator();
+    }
+
+    @PostMapping("/test02")
+    public void print(){
         for (int i=1;i<10;i++){
             try {
                 System.out.println(createWorld.readOutput());
