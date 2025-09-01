@@ -82,12 +82,17 @@ public class CreateService {
 
     @PostMapping("/test02")
     public void print(){
-        for (int i=1;i<10;i++){
+        while (true){
+            String r = null;
             try {
-                System.out.println(createWorld.readOutput());
+                r = createWorld.readOutput();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            if (r == null){
+                return;
+            }
+            System.out.println(r);
         }
     }
 
