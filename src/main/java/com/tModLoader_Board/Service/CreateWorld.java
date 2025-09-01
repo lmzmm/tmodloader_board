@@ -81,6 +81,7 @@ public class CreateWorld {
                 }
             }
             else {
+                System.out.println("over");
                 break;
             }
         }

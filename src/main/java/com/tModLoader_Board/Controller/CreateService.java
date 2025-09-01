@@ -106,6 +106,16 @@ public class CreateService {
         }
     }
 
+    @PostMapping("/worldConfig")
+    public String worldConfig(@RequestBody String config) {
+        try {
+            createWorld.sendCommand(config);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return "OK";
+    }
+
     @GetMapping("/create/modlist")
     public List<String> modlist() {
         setPath();
