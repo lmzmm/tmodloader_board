@@ -78,27 +78,7 @@ public class CreateService {
     @PostMapping("/test01")
     public String startworldcreator(){
         createWorld.startWorldCreator();
-        new Thread(() -> createWorld.readAll()).start();
-        while (true){
-            String r;
-            try {
-                r = createWorld.readOutput();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (r != null){
-                if (! r.isEmpty() && r.charAt(0) == 'm'){
-                    try {
-                        createWorld.sendCommand("n");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    System.out.println("OK");
-                    return "OK";
-                }
-            }
-        }
+        return "OK";
     }
 
     @PostMapping("/worldConfig")

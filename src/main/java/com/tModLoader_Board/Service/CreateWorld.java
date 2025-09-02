@@ -35,6 +35,21 @@ public class CreateWorld {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        String line;
+        while (true) {
+            try {
+                line = readOutput();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (line != null && !line.isEmpty()) {
+                System.out.println(line);
+                if (line.charAt(0) == 'm') {
+                    new Thread(() -> readAll()).start();
+                    return;
+                }
+            }
+        }
     }
 
     /**
