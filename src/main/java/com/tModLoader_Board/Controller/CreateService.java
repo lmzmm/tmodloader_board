@@ -98,17 +98,13 @@ public class CreateService {
                     return "OK";
                 }
             }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
     @PostMapping("/worldConfig")
     public String worldConfig(@RequestBody String config) {
         try {
+            System.out.println(config);
             createWorld.sendCommand(config);
         } catch (IOException e) {
             throw new RuntimeException(e);
