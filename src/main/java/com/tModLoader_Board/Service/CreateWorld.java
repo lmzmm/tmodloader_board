@@ -67,10 +67,13 @@ public class CreateWorld {
     public void readAll() {
     try {
         String r;
-        while ((r = readOutput()) != null) {
+        while (true) {
+            r = reader.readLine();
+            if (r == null) {
+                continue;
+            }
             System.out.println(r);
         }
-        System.out.println("END");
     } catch (IOException e) {
         e.printStackTrace(); // 或者用日志
     }
