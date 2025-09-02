@@ -39,15 +39,16 @@ public class CreateWorld {
         while (true) {
             try {
                 line = readOutput();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (line != null && !line.isEmpty()) {
+                if (line != null && !line.isEmpty()) {
                 System.out.println(line);
                 if (line.charAt(0) == 'm') {
+                    sendCommand("n");
                     new Thread(() -> readAll()).start();
                     return;
                 }
+            }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }
