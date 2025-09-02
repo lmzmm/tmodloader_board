@@ -72,17 +72,15 @@ public class CreateWorld {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            if (r != null) {
-                System.out.println(r);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+            if (r == null) {
+                System.out.println("END");
+                return;
             }
-            else {
-                System.out.println("over");
-                break;
+            System.out.println(r);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }
