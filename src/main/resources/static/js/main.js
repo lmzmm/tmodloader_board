@@ -29,7 +29,7 @@ async function postCreatorStep(dataToSend, nextView, buttonElement, statusElemen
     statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在发送配置...';
 
     try {
-        const response = await fetch('/create/worldconfig', {
+        const response = await fetch('/create/worldonfig', {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
             body: dataToSend
