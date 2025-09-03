@@ -93,7 +93,7 @@ public class CreateService {
         return "OK";
     }
 
-    @PostMapping("/worldConfig")
+    @PostMapping("/create/worldConfig")
     public String worldConfig(@RequestBody String config) {
         try {
             System.out.println(config);
