@@ -12,39 +12,41 @@ const ServerListView = {
       .then(response => {
         if (!response.ok) {
           console.warn('无法连接到服务器，将使用模拟数据。');
-          // 提供包含所有需要属性的模拟数据
-          return [
-            { sessionName: '我的生存服务器', players: 5, maxPlayers: 10, status: 'Running' },
-            { sessionName: '创造模式乐园', players: 2, maxPlayers: 20, status: 'Running' }
-          ];
+          // 更新模拟数据以匹配新的字符串数组格式
+          return ["tmodloader-20250715", "我的测试服务器"];
         }
+        // 解析服务器返回的 JSON 数组
         return response.json();
       })
       .then(serverList => {
-        if (serverList.length === 0) {
+        if (!serverList || serverList.length === 0) {
           container.innerHTML = '<p>当前没有正在运行的服务器。</p>';
           return;
         }
+
         let listHtml = '';
-        serverList.forEach(server => {
-          // 使用新的、美化后的HTML模板
+        // *** 关键修改在这里 ***
+        // 我们现在遍历的是一个字符串数组，所以循环变量 `serverName` 就是服务器名称本身。
+        serverList.forEach(serverName => {
+          // 生成列表项的 HTML，直接使用 serverName
           listHtml += `
             <div class="server-item">
               <div>
                 <span class="status" title="运行中"></span>
-                <span>${server.sessionName} (${server.players}/${server.maxPlayers})</span>
+                <span>${serverName}</span>
               </div>
               <div class="actions">
-                <button class="btn-enter" data-session="${server.sessionName}"><i class="fas fa-sign-in-alt"></i> 进入管理</button>
-                <button class="btn-stop" data-session="${server.sessionName}"><i class="fas fa-stop-circle"></i> 停止</button>
+                <button class="btn-enter" data-session="${serverName}"><i class="fas fa-sign-in-alt"></i> 进入管理</button>
+                <button class="btn-stop" data-session="${serverName}"><i class="fas fa-stop-circle"></i> 停止</button>
               </div>
             </div>
           `;
         });
+
         container.innerHTML = listHtml;
 
+        // 事件监听器部分保持不变，它能正常工作
         container.addEventListener('click', (event) => {
-          // 使用 .closest() 确保即使点击图标也能找到按钮
           const target = event.target.closest('button');
           if (!target) return;
 
