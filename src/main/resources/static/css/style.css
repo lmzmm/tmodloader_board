@@ -189,3 +189,9 @@ body, html {
 .status-success { color: var(--success-color); font-weight: 500; }
 .status-fail { color: var(--danger-color); font-weight: 500; }
 #creationStatus, #controlPanelStatus { font-size: 1.1em; }
+.step-status {
+    margin-top: 15px;
+    min-height: 24px; /* 防止内容加载时页面跳动 */
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
