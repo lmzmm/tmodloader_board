@@ -80,10 +80,15 @@ public class CreateService {
     public String startworldcreator(@RequestBody Map<String, List<String>> payload) {
         // 从 Map 中根据键 "mods" 获取列表
         List<String> mods = payload.get("mods");
+        try {
+            startService.enableMods(mods, modPath + "enabled.json");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         System.out.println("收到的 Mods 列表: " + mods);
 
-        // createWorld.startWorldCreator();
+        createWorld.startWorldCreator();
 
         return "OK";
     }
