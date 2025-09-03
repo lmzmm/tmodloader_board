@@ -62,7 +62,7 @@ const SelectModView = {
 
             // 发送POST请求到 /startworldcreator
             console.log('正在启动世界创建流程，发送配置:', { mods: worldCreatorConfig.mods });
-            fetch('/startworldcreator', {
+            fetch('/create/startworldcreator', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ mods: worldCreatorConfig.mods })

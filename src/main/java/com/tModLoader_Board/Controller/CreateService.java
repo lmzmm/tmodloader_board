@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -75,9 +76,15 @@ public class CreateService {
         return "OK";
     }
 
-    @PostMapping("/test01")
-    public String startworldcreator(){
-        createWorld.startWorldCreator();
+    @PostMapping("/create/startworldcreator")
+    public String startworldcreator(@RequestBody Map<String, List<String>> payload) {
+        // 从 Map 中根据键 "mods" 获取列表
+        List<String> mods = payload.get("mods");
+
+        System.out.println("收到的 Mods 列表: " + mods);
+
+        // createWorld.startWorldCreator();
+
         return "OK";
     }
 
