@@ -1,0 +1,191 @@
+/* --- 1. 全局变量与基础设置 --- */
+:root {
+  --font-family: 'Poppins', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --primary-color: #3498db;
+  --primary-color-dark: #2980b9;
+  --sidebar-bg: #2c3e50;
+  --sidebar-bg-hover: #34495e;
+  --content-bg: #f4f7fa;
+  --card-bg: #ffffff;
+  --text-dark: #2c3e50;
+  --text-light: #ecf0f1;
+  --text-secondary: #7f8c8d;
+  --border-color: #e1e5e8;
+  --danger-color: #e74c3c;
+  --danger-color-dark: #c0392b;
+  --warning-color: #f39c12;
+  --warning-color-dark: #d35400;
+  --success-color: #27ae60;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --border-radius: 8px;
+}
+
+body, html {
+  margin: 0; padding: 0; height: 100%;
+  font-family: var(--font-family);
+  background-color: var(--content-bg);
+  font-size: 16px;
+  color: var(--text-dark);
+}
+
+*, *:before, *:after { box-sizing: border-box; }
+
+/* --- 2. 布局 --- */
+.container { display: flex; height: 100vh; }
+.sidebar {
+  width: 240px; background-color: var(--sidebar-bg); color: var(--text-light);
+  display: flex; flex-direction: column; flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+.sidebar-header {
+  padding: 25px 20px; text-align: center;
+  border-bottom: 1px solid var(--sidebar-bg-hover);
+}
+.sidebar-header h3 { margin: 0; }
+.content {
+  flex-grow: 1; padding: 30px;
+  overflow-y: auto;
+}
+
+/* --- 3. 组件样式 --- */
+
+/* 卡片 */
+.card {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+/* 侧边栏按钮 */
+.sidebar button {
+  background: none; border: none; color: var(--text-light); padding: 20px;
+  text-align: left; font-size: 16px; cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+.sidebar button i { margin-right: 15px; width: 20px; text-align: center; }
+.sidebar button:hover { background-color: var(--sidebar-bg-hover); }
+.sidebar button.active {
+  background-color: var(--sidebar-bg-hover);
+  border-left: 4px solid var(--primary-color);
+  font-weight: 600;
+}
+
+/* 内容区域标题 */
+.content h2 {
+  color: var(--text-dark);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 15px; margin-top: 0;
+}
+.content h3 { color: var(--text-dark); }
+
+/* 按钮 */
+.content button {
+  padding: 12px 24px; font-size: 16px;
+  cursor: pointer; background-color: var(--primary-color); color: white;
+  border: none; border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+.content button:hover {
+  background-color: var(--primary-color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+}
+.content button:disabled {
+  background-color: #bdc3c7; cursor: not-allowed;
+  transform: none; box-shadow: none;
+}
+.actions button {
+  padding: 8px 15px; font-size: 14px; margin-left: 10px;
+}
+
+/* 表单与输入框 */
+.form-group, .control-group { margin-bottom: 20px; }
+.form-group label, .control-group label {
+  display: block; margin-bottom: 8px; font-weight: 500;
+}
+.form-group input, .control-group input {
+  width: 100%; max-width: 400px; padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 16px; transition: border-color 0.3s, box-shadow 0.3s;
+}
+.form-group input:focus, .control-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* 列表项 (服务器, 玩家, Mod) */
+.item-list label {
+  display: block; margin-bottom: 10px; background-color: #f8f9fa;
+  padding: 15px; border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.item-list label:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.server-item, .player-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px; background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
+.server-item:hover, .player-item:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow);
+}
+.server-item span, .player-item span {
+  font-weight: 600; color: var(--text-dark);
+  font-size: 1.1em;
+}
+.server-item .status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: var(--success-color);
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+/* 特殊按钮颜色 */
+.actions .btn-stop, .actions .btn-ban { background-color: var(--danger-color); }
+.actions .btn-stop:hover, .actions .btn-ban:hover { background-color: var(--danger-color-dark); box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4); }
+.actions .btn-kick { background-color: var(--warning-color); }
+.actions .btn-kick:hover { background-color: var(--warning-color-dark); box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4); }
+#backToServerListBtn { background-color: var(--text-secondary); }
+#backToServerListBtn:hover { background-color: #95a5a6; box-shadow: 0 6px 15px rgba(127, 140, 141, 0.4); }
+
+/* 上传区域 */
+.content-wrapper { display: flex; gap: 30px; }
+.selection-area, .control-panel { flex-grow: 1; }
+.upload-area {
+  width: 350px; flex-shrink: 0; background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 20px; display: none;
+}
+.upload-area.visible { display: block; }
+.drop-zone {
+  border: 2px dashed var(--primary-color); border-radius: var(--border-radius);
+  padding: 40px 20px; text-align: center; color: var(--primary-color);
+  cursor: pointer; transition: all 0.3s;
+}
+.drop-zone i { font-size: 2.5em; margin-bottom: 15px; }
+.drop-zone.dragover {
+  background-color: #eaf5ff; border-style: solid; color: var(--primary-color-dark);
+}
+
+/* 状态消息 */
+.status-success { color: var(--success-color); font-weight: 500; }
+.status-fail { color: var(--danger-color); font-weight: 500; }
+#creationStatus, #controlPanelStatus { font-size: 1.1em; }
