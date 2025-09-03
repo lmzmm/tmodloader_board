@@ -94,17 +94,14 @@ public class CreateService {
     }
 
     @PostMapping("/create/worldconfig")
-    public String worldConfig(@RequestBody String config) {
+    public String worldConfig(@RequestBody(required = false) String config) {
         try {
-            if (config != null) {
-                System.out.println(config);
+            if (config != null && !config.trim().isEmpty()) {
+                System.out.println("收到参数: " + config);
                 createWorld.sendCommand(config);
-            }
-
-            else {
+            } else {
                 createWorld.sendCommand("");
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
