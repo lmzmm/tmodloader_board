@@ -86,6 +86,7 @@ public class CreateWorld {
      */
     public synchronized void sendCommand(String command) throws IOException {
         System.out.println("!!!");
+        if (1==1) throw new IOException("ttt6t6666yy6y6。");
         if (processWriter == null) {
             throw new IOException("进程未运行或未准备好接收指令。");
         }
