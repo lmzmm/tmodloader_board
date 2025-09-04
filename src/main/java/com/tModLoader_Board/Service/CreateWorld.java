@@ -13,15 +13,11 @@ import java.util.List;
 import java.util.concurrent.*;
 
 
+@Service
 public class CreateWorld {
 
     private final String serverPath = System.getProperty("user.home") + "/tmodloader/start-tModLoaderServer.sh";
-    private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread(r,"tttttt");
-        }
-    });
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     // --- 状态变量：用于在多个HTTP请求间保持进程状态 ---
     private volatile Process activeProcess;
@@ -64,22 +60,19 @@ public class CreateWorld {
 
                     sendCommand("n");
 
-                    System.out.println("启动");
-
                     readyFuture.complete(null); // 发送完成信号
                     return; // 初始化读取任务完成
                 }
             }
             // 如果循环结束进程还没准备好（例如，脚本立即退出），说明出错了
-            readyFuture.completeExceptionally(new IOException("进程在准备就-绪-前已终止，未找到'New World'选项。"));
+            readyFuture.completeExceptionally(new IOException("进程在准备就绪前已终止，未找到'New World'选项。"));
         } catch (IOException e) {
             readyFuture.completeExceptionally(e); // 将异常传递给 Future
             stopProcess();
         }
     });
-  System.out.println("before blocked...");
     // 阻塞等待，直到 readyFuture 完成或超时。可以适当增加超时时间以防万一。
-    readyFuture.get(18000, TimeUnit.SECONDS); // 将超时增加到 2 分钟
+    readyFuture.get(180, TimeUnit.SECONDS); // 将超时增加到 2 分钟
 }
 
     /**
@@ -87,7 +80,6 @@ public class CreateWorld {
      * 由 /create/worldconfig 端点调用。
      */
     public synchronized void sendCommand(String command) throws IOException {
-        if (1==1) throw new IOException("ttt6t6666yy6y6。");
         if (processWriter == null) {
             throw new IOException("进程未运行或未准备好接收指令。");
         }
