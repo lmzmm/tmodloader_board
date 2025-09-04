@@ -107,6 +107,7 @@ public class CreateService {
                 System.out.println("收到参数: " + config);
                 createWorld.sendCommand(config);
             } else {
+                System.out.println("????");
                 createWorld.sendCommand("");
             }
         } catch (IOException e) {
