@@ -95,42 +95,22 @@ const SelectModView = {
 
             console.log('正在启动世界创建流程，发送配置:', { mods: worldCreatorConfig.mods });
 
-            fetch('/create/startworldcreator', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ mods: worldCreatorConfig.mods })
-            })
+            fetch('/create/startworldcreator', { method: 'POST' })
             .then(res => {
-              if (!res.ok) {
-                // 如果服务器返回错误，则抛出异常
-                return res.text().then(text => { throw new Error(text || '启动世界创建流程失败'); });
-              }
-              return res.text();
+                if (!res.ok) {
+                    return res.text().then(text => { throw new Error(text || '启动世界创建流程失败'); });
+                }
+                return res.text();
             })
             .then(text => {
-              // 3. 成功收到后端回复
-              console.log('服务器响应:', text);
-
-              // 更新状态信息为成功
-              statusEl.style.color = 'var(--success-color)';
-              statusEl.innerHTML = `✅ 世界生成器已成功启动！正在进入下一步...`;
-
-              // 延迟一小段时间（例如1秒），让用户看到成功信息，然后跳转
-              setTimeout(() => {
+                console.log("服务器已准备好接收配置:", text);
+                // 成功后才进入第一个配置页面
                 loadView(SelectWorldSizeView);
-              }, 1000);
             })
             .catch(err => {
-              // 4. 捕获到任何错误（网络错误或服务器返回的错误）
-              console.error("启动世界创建流程时出错:", err);
-
-              // 更新状态信息为失败
-              statusEl.style.color = 'var(--danger-color)';
-              statusEl.innerHTML = `❌ 操作失败: ${err.message}`;
-
-              // 重新启用按钮，以便用户可以修正问题后重试
-              submitBtn.disabled = false;
-              showUploaderBtn.disabled = false;
+                // 在这里处理启动失败的错误
+                statusEl.innerHTML = `<span class="status-fail">❌ 启动失败: ${err.message}</span>`;
+                submitBtn.disabled = false;
             });
           }
         });
