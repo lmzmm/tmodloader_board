@@ -16,7 +16,7 @@ const WorldCreationProgressView = {
             </div>
             
             <!-- 新增：取消按钮 -->
-            <button id="cancelCreationBtn" class="terraria-button">取消</button>
+            <button id="cancelCreationBtn" class="terraria-text-button">取消</button>
         </div>
 
         <!-- 新增：完成后的提示信息，默认隐藏 -->

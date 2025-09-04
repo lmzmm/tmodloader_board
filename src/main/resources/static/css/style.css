@@ -302,6 +302,40 @@ body, html {
     box-shadow: none; /* 禁用时也没有阴影 */
 }
 
+.terraria-text-button {
+    /* 继承字体和边距 */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: #FFF;
+    text-shadow: 2px 2px 0 #000;
+    margin-top: 30px;
+    cursor: pointer;
+
+    /* 关键改动：移除背景和边框，使其透明 */
+    background: none;
+    border: none;
+    padding: 10px; /* 增加一点内边距，扩大点击区域 */
+    box-shadow: none;
+    transition: all 0.1s ease-in-out;
+}
+
+.terraria-text-button:hover {
+    /* 鼠标悬停时，给一点视觉反馈，例如变亮或加下划线 */
+    color: #FFD700; /* 变成金色 */
+    text-decoration: underline;
+}
+
+.terraria-text-button:active {
+    /* 按下时，稍微移动一点位置 */
+    transform: translateY(2px);
+}
+
+.terraria-text-button:disabled {
+    color: #888; /* 禁用时变灰 */
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
 /* 9. 完成/失败后的消息框 (保持不变) */
 .terraria-completion-message {
     display: flex;
