@@ -47,31 +47,36 @@ public class CreateWorld {
         this.processReader = new BufferedReader(new InputStreamReader(activeProcess.getInputStream()));
 
         // 使用 CompletableFuture 来等待后台任务完成特定的初始化步骤
-        CompletableFuture<Void> readyFuture = new CompletableFuture<>();
+    CompletableFuture<Void> readyFuture = new CompletableFuture<>();
 
-        executor.execute(() -> {
-            try {
-                String line;
-                while ((line = processReader.readLine()) != null) {
-                    System.out.println("INIT: " + line);
-                    if (line.trim().startsWith("m")) {
-                        sendCommand("n");
-                        System.out.println("服务器已就绪，已发送'n'指令。");
-                        readyFuture.complete(null); // 发送完成信号
-                        return; // 初始化读取任务完成
-                    }
+    executor.execute(() -> {
+        try {
+            String line;
+            while ((line = processReader.readLine()) != null) {
+                System.out.println("INIT: " + line); // 保持日志输出
+
+                //  "n" 和 "New World" 作为就绪信号
+                if (line.contains("n") && line.contains("New World")) {
+
+                    System.out.println("服务器已准备就绪。");
+
+                    sendCommand("n");
+
+                    readyFuture.complete(null); // 发送完成信号
+                    return; // 初始化读取任务完成
                 }
-                // 如果循环结束进程还没准备好，说明出错了
-                readyFuture.completeExceptionally(new IOException("进程在准备就绪前已终止。"));
-            } catch (IOException e) {
-                readyFuture.completeExceptionally(e); // 将异常传递给 Future
-                stopProcess();
             }
-        });
+            // 如果循环结束进程还没准备好（例如，脚本立即退出），说明出错了
+            readyFuture.completeExceptionally(new IOException("进程在准备就-绪-前已终止，未找到'New World'选项。"));
+        } catch (IOException e) {
+            readyFuture.completeExceptionally(e); // 将异常传递给 Future
+            stopProcess();
+        }
+    });
 
-        // 阻塞等待，直到 readyFuture 完成或超时（例如60秒）
-        readyFuture.get(60, TimeUnit.SECONDS);
-    }
+    // 阻塞等待，直到 readyFuture 完成或超时。可以适当增加超时时间以防万一。
+    readyFuture.get(180, TimeUnit.SECONDS); // 将超时增加到 2 分钟
+}
 
     /**
      * 第二步：发送配置指令。
