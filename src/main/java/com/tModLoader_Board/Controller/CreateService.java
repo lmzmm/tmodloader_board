@@ -88,6 +88,8 @@ public class CreateService {
         } catch (IOException e) {
             // 返回一个 HTTP 500 错误，前端可以捕获并显示
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "无法启动服务器进程", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

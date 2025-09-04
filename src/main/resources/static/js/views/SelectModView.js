@@ -69,51 +69,59 @@ const SelectModView = {
             document.getElementById('modUploadArea').classList.toggle('visible');
         });
 
-        submitBtn.addEventListener('click', () => {
-          const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
+    submitBtn.addEventListener('click', () => {
+        const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
 
-          if (currentWorkflow === 'createServer') {
-            serverConfig.mods = selectedMods;
-            alert(`模组选择成功! 已选: ${serverConfig.mods.join(', ') || '无'}`);
-            loadView(SelectWorldView);
+        if (currentWorkflow === 'createServer') {
+            // ... (创建服务器的逻辑不变) ...
+        } else if (currentWorkflow === 'createWorld') {
+            worldCreatorConfig.mods = selectedMods; // 保存模组选择
 
-          } else if (currentWorkflow === 'createWorld') {
-            worldCreatorConfig.mods = selectedMods;
-
-            // --- 开始执行带状态反馈的异步操作 ---
+            // --- 开始执行带等待反馈的初始化流程 ---
 
             // 1. 禁用按钮，防止重复点击
             submitBtn.disabled = true;
-            showUploaderBtn.disabled = true; // 同时禁用上传按钮
 
-            // 2. 显示初始状态信息，告知用户操作已开始
+            // 2. 显示明确的等待信息
             statusEl.style.color = 'var(--text-secondary)';
             statusEl.innerHTML = `
-              <i class="fas fa-spinner fa-spin"></i> 
-              正在提交模组配置并启动世界生成器... 这可能需要一段时间，请耐心等待。
+                <i class="fas fa-cog fa-spin"></i> 
+                正在初始化世界生成器... 这可能需要几十秒，请耐心等待。
             `;
 
-            console.log('正在启动世界创建流程，发送配置:', { mods: worldCreatorConfig.mods });
-
+            // 3. 调用后端，启动并等待进程就绪
             fetch('/create/startworldcreator', { method: 'POST' })
             .then(res => {
                 if (!res.ok) {
-                    return res.text().then(text => { throw new Error(text || '启动世界创建流程失败'); });
+                    // 如果服务器返回错误，则抛出异常
+                    return res.text().then(text => { throw new Error(text || '启动世界生成器失败'); });
                 }
-                return res.text();
+                return res.text(); // "OK"
             })
             .then(text => {
+                // 4. 后端确认就绪后，才进入下一步
                 console.log("服务器已准备好接收配置:", text);
-                // 成功后才进入第一个配置页面
-                loadView(SelectWorldSizeView);
+
+                // (可选) 显示一个短暂的成功提示
+                statusEl.style.color = 'var(--success-color)';
+                statusEl.innerHTML = `✅ 初始化成功！正在进入配置页面...`;
+
+                setTimeout(() => {
+                    loadView(SelectWorldSizeView);
+                }, 500); // 延迟半秒跳转，让用户看到成功提示
+
             })
             .catch(err => {
-                // 在这里处理启动失败的错误
-                statusEl.innerHTML = `<span class="status-fail">❌ 启动失败: ${err.message}</span>`;
+                // 5. 捕获任何错误
+                console.error("初始化世界生成器时出错:", err);
+                statusEl.style.color = 'var(--danger-color)';
+                statusEl.innerHTML = `❌ 初始化失败: ${err.message}`;
+
+                // 重新启用按钮，以便用户可以重试
                 submitBtn.disabled = false;
             });
-          }
-        });
+        }
+    });
       })
       .catch(err => { container.innerHTML = '加载模组列表失败: ' + err.message; });
   }

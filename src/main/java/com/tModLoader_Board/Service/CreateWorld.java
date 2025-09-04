@@ -10,8 +10,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CreateWorld {
@@ -30,8 +32,7 @@ public class CreateWorld {
      * 启动服务器进程，并等待其进入主菜单。
      * 这个方法是同步的，因为它需要确认进程已准备好接收配置。
      */
-    public synchronized void startConfigurationProcess() throws IOException {
-        // 如果已有进程在运行，则先销毁
+    public synchronized void startConfigurationProcess() throws Exception {
         stopProcess();
 
         System.out.println("正在启动世界创建配置流程...");
@@ -45,24 +46,31 @@ public class CreateWorld {
         this.processWriter = new BufferedWriter(new OutputStreamWriter(activeProcess.getOutputStream()));
         this.processReader = new BufferedReader(new InputStreamReader(activeProcess.getInputStream()));
 
-        // 在后台线程中读取，直到看到主菜单提示，以避免阻塞
-        // 这是为了让 startConfigurationProcess 方法可以快速返回
+        // 使用 CompletableFuture 来等待后台任务完成特定的初始化步骤
+        CompletableFuture<Void> readyFuture = new CompletableFuture<>();
+
         executor.execute(() -> {
             try {
                 String line;
                 while ((line = processReader.readLine()) != null) {
-                    System.out.println("INIT: " + line); // 打印初始输出
+                    System.out.println("INIT: " + line);
                     if (line.trim().startsWith("m")) {
-                        sendCommand("n"); // 发送 "New World" 指令
+                        sendCommand("n");
                         System.out.println("服务器已就绪，已发送'n'指令。");
-                        break; // 准备就绪，退出循环
+                        readyFuture.complete(null); // 发送完成信号
+                        return; // 初始化读取任务完成
                     }
                 }
+                // 如果循环结束进程还没准备好，说明出错了
+                readyFuture.completeExceptionally(new IOException("进程在准备就绪前已终止。"));
             } catch (IOException e) {
-                e.printStackTrace();
-                stopProcess(); // 如果出错则清理
+                readyFuture.completeExceptionally(e); // 将异常传递给 Future
+                stopProcess();
             }
         });
+
+        // 阻塞等待，直到 readyFuture 完成或超时（例如60秒）
+        readyFuture.get(60, TimeUnit.SECONDS);
     }
 
     /**
