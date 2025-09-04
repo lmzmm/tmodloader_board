@@ -6,11 +6,15 @@ import com.tModLoader_Board.Service.CreateWorld;
 import com.tModLoader_Board.Service.FileService;
 import com.tModLoader_Board.Service.StartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
@@ -77,20 +81,21 @@ public class CreateService {
     }
 
     @PostMapping("/create/startworldcreator")
-    public String startworldcreator(@RequestBody Map<String, List<String>> payload) {
-        // 从 Map 中根据键 "mods" 获取列表
-        List<String> mods = payload.get("mods");
+    public String startWorldCreatorProcess() {
         try {
-            startService.enableMods(mods, modPath + "enabled.json");
+            createWorld.startConfigurationProcess();
+            return "OK";
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            // 返回一个 HTTP 500 错误，前端可以捕获并显示
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "无法启动服务器进程", e);
         }
+    }
 
-        System.out.println("收到的 Mods 列表: " + mods);
-
-        createWorld.startWorldCreator();
-
-        return "OK";
+    @GetMapping(value = "/create/worldprogress-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamWorldCreationProgress() {
+        SseEmitter emitter = new SseEmitter(3600_000L); // 1小时超时
+        createWorld.streamProgress(emitter);
+        return emitter;
     }
 
     @PostMapping("/create/worldconfig")
