@@ -62,6 +62,8 @@ public class CreateWorld {
 
                     sendCommand("n");
 
+                    System.out.println("启动！！！");
+
                     readyFuture.complete(null); // 发送完成信号
                     return; // 初始化读取任务完成
                 }
