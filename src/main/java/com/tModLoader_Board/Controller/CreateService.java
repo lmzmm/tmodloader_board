@@ -31,8 +31,9 @@ public class CreateService {
     private FileService fileService;
     @Autowired
     private  StartService startService;
-    @Autowired
-    private CreateWorld createWorld;
+//    @Autowired
+//    private CreateWorld createWorld;
+    private CreateWorld createWorld = new CreateWorld();
 
     public void setPath(){
         String os = System.getProperty("os.name").toLowerCase();

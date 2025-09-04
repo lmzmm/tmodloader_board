@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-@Service
+
 public class CreateWorld {
 
     private final String serverPath = System.getProperty("user.home") + "/tmodloader/start-tModLoaderServer.sh";
