@@ -59,7 +59,7 @@ public class CreateWorld {
                 if (line.contains("n") && line.contains("New World")) {
 
                     System.out.println("服务器已准备就绪。");
-
+  System.out.println("服务器已准备就绪222222。");
                     sendCommand("n");
 
                     System.out.println("启动");
