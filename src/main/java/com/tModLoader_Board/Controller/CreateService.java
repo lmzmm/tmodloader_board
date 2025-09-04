@@ -100,6 +100,13 @@ public class CreateService {
         return emitter;
     }
 
+    @PostMapping("/create/cancelworldcreation")
+    public String cancelWorldCreation() {
+        System.out.println("收到取消世界创建的请求...");
+        createWorld.stopProcess(); // 调用服务中的 stopProcess 方法
+        return "OK";
+    }
+
     @PostMapping("/create/worldconfig")
     public String worldConfig(@RequestBody(required = false) String config) {
         try {

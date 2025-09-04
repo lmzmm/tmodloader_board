@@ -197,9 +197,9 @@ body, html {
 }
 /* in css/style.css */
 
-/* --- Terraria Progress View Styles (Dual Bar Version) --- */
+/* --- Terraria Progress View Styles (Final Optimized Version) --- */
 
-/* 1. 全屏背景 (保持不变) */
+/* 1. 全屏背景 */
 .terraria-background {
     display: flex;
     flex-direction: column;
@@ -207,100 +207,129 @@ body, html {
     align-items: center;
     width: 100%;
     height: 100%;
+    /* 替换为您自己的背景图 */
     background: url('background.jpg') no-repeat center center;
     background-size: cover;
     padding: 20px;
     box-sizing: border-box;
+    /* 应用像素字体 */
+    font-family: 'Press Start 2P', cursive;
 }
 
-/* 2. 进度条的整体包装器 (保持不变) */
+/* 2. 进度条的整体包装器 */
 .terraria-progress-wrapper {
     width: 100%;
     max-width: 800px;
-    position: relative; /* 用于边角装饰定位 */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-/* 3. 进度条上方的文本 (保持不变) */
+/* 3. 进度条上方的文本 */
 .terraria-text-overlay {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 24px; /* 像素字体通常较大，调整字号 */
     color: white;
     text-align: center;
     margin-bottom: 20px;
-    text-shadow:
-        -2px -2px 0 #000, 2px -2px 0 #000,
-        -2px 2px 0 #000, 2px 2px 0 #000;
+    text-shadow: 2px 2px 0 #000;
+    line-height: 1.5;
 }
 
-/* 4. 新增: 两个进度条的容器，使用Flexbox布局 */
+/* 4. 双进度条容器 */
 .terraria-bars-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* 两个进度条之间的间距 */
-    /* 添加边角装饰的伪元素 */
+    gap: 8px;
     position: relative;
+    width: 100%;
+    padding: 0 40px; /* 为边角装饰留出空间 */
+    box-sizing: border-box;
 }
 
-/* 5. 单个进度条的容器 (黑色的长条背景) */
+/* 5. 单个进度条容器 (黑背景) */
 .terraria-bar-container {
-    height: 24px; /* 调整高度以适应两个条 */
+    height: 24px;
     background-color: #000;
     border: 3px solid #583E3E;
-    border-radius: 2px;
+    border-radius: 0; /* 像素风格不需要圆角 */
     padding: 3px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-/* 6. 进度条的填充部分的通用样式 */
+/* 6. 进度条填充通用样式 */
 .terraria-bar-fill {
     height: 100%;
     width: 0%;
     box-shadow: inset 0 0 5px rgba(255,255,255,0.4);
-    transition: width 0.2s linear; /* 任务进度变化快，使用更快的动画 */
+    transition: width 0.2s linear;
 }
+.terraria-overall-fill { background-color: #17A427; }
+.terraria-task-fill { background-color: #A32CC4; }
 
-/* 7. 为两个填充条设置不同的颜色 */
-.terraria-overall-fill {
-    background-color: #17A427; /* 总进度 - 绿色 */
-}
-
-.terraria-task-fill {
-    background-color: #A32CC4; /* 任务进度 - 紫色 */
-}
-
-
-/* 8. 边角装饰 (现在应用于 bars-wrapper) */
+/* 7. 【关键修复】边角装饰 - 使用 Base64 内联图片 */
+/* 这将永久解决图片路径问题，无需外部文件 */
 .terraria-bars-wrapper::before,
 .terraria-bars-wrapper::after {
     content: '';
     position: absolute;
     z-index: 10;
-    width: 80px;
-    height: 98px; /* 调整高度以覆盖两个条和间距 */
+    width: 60px; /* 调整为你装饰图的尺寸 */
+    height: 98px;
     background-size: contain;
     background-repeat: no-repeat;
-    /* 通过负 top/bottom 值让装饰超出容器 */
     top: -20px;
 }
-
 .terraria-bars-wrapper::before {
-    left: -48px;
-    /* background-image: url('/path/to/your/progress-left-cap.png'); */
+    left: -15px;
+    /* 一个简单的像素风左边角 (Base64编码) */
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABgCAYAAACx5S/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACYSURBVHja7cwxAQAwEAOh+jed9sD9JBYhSYULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy7c/wB7d42wAftuS7sAAAAASUVORK5CYII=');
 }
-
 .terraria-bars-wrapper::after {
-    right: -48px;
-    /* background-image: url('/path/to/your/progress-right-cap.png'); */
+    right: -15px;
+    /* 一个简单的像素风右边角 (Base64编码) */
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABgCAYAAACx5S/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACYSURBVHja7cwxAQAwEAOh+jed9sD9JBYhSYULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy7c/wB7d42wAftuS7sAAAAASUVORK5CYII=');
 }
 
+/* 8. 新增: 通用 Terraria 风格按钮 */
+.terraria-button {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #4A4A6A;
+    color: #FFF;
+    border: 3px solid #2A2A3A;
+    border-bottom: 5px solid #2A2A3A;
+    border-right: 5px solid #2A2A3A;
+    padding: 15px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #000;
+    transition: all 0.1s ease-in-out;
+    margin-top: 30px; /* 与进度条的间距 */
+}
+.terraria-button:hover {
+    background-color: #6A6A8A;
+}
+.terraria-button:active {
+    border-bottom: 3px solid #2A2A3A;
+    border-right: 3px solid #2A2A3A;
+    transform: translateY(2px);
+}
+.terraria-button:disabled {
+    background-color: #333;
+    color: #888;
+    cursor: not-allowed;
+}
 
-/* 9. 完成后的状态文本样式 (保持不变) */
-.terraria-final-status {
-    margin-top: 30px;
-    padding: 15px 25px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    font-size: 20px;
+/* 9. 新增: 完成/失败后的消息框 */
+.terraria-completion-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.75);
+    padding: 40px;
+    border: 3px solid #583E3E;
+    text-align: center;
     color: white;
+    font-size: 18px;
+    line-height: 1.8;
 }
