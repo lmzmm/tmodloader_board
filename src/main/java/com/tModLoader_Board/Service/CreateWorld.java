@@ -79,7 +79,7 @@ public class CreateWorld {
      * 第二步：发送配置指令。
      * 由 /create/worldconfig 端点调用。
      */
-    public synchronized void sendCommand(String command) throws IOException {
+    public void sendCommand(String command) throws IOException {
         if (processWriter == null) {
             throw new IOException("进程未运行或未准备好接收指令。");
         }
