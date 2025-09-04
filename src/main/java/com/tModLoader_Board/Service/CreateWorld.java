@@ -77,7 +77,7 @@ public class CreateWorld {
             stopProcess();
         }
     });
-
+  System.out.println("before blocked...");
     // 阻塞等待，直到 readyFuture 完成或超时。可以适当增加超时时间以防万一。
     readyFuture.get(18000, TimeUnit.SECONDS); // 将超时增加到 2 分钟
 }
