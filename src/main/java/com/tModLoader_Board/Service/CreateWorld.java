@@ -62,7 +62,7 @@ public class CreateWorld {
 
                     sendCommand("n");
 
-                    System.out.println("启动！！！");
+                    System.out.println("启动");
 
                     readyFuture.complete(null); // 发送完成信号
                     return; // 初始化读取任务完成
@@ -84,7 +84,8 @@ public class CreateWorld {
      * 第二步：发送配置指令。
      * 由 /create/worldconfig 端点调用。
      */
-    public synchronized void sendCommand(String command) throws IOException {
+    public void sendCommand(String command) throws IOException {
+        System.out.println("!!!");
         if (processWriter == null) {
             throw new IOException("进程未运行或未准备好接收指令。");
         }
