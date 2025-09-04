@@ -197,9 +197,9 @@ body, html {
 }
 /* in css/style.css */
 
-/* --- Terraria Progress View Styles (Final Optimized Version) --- */
+/* --- Terraria Progress View Styles (Final Polished Version) --- */
 
-/* 1. 全屏背景 */
+/* 1. 全屏背景 (保持不变) */
 .terraria-background {
     display: flex;
     flex-direction: column;
@@ -207,16 +207,14 @@ body, html {
     align-items: center;
     width: 100%;
     height: 100%;
-    /* 替换为您自己的背景图 */
     background: url('background.jpg') no-repeat center center;
     background-size: cover;
     padding: 20px;
     box-sizing: border-box;
-    /* 应用像素字体 */
     font-family: 'Press Start 2P', cursive;
 }
 
-/* 2. 进度条的整体包装器 */
+/* 2. 进度条的整体包装器 (保持不变) */
 .terraria-progress-wrapper {
     width: 100%;
     max-width: 800px;
@@ -226,9 +224,9 @@ body, html {
     align-items: center;
 }
 
-/* 3. 进度条上方的文本 */
+/* 3. 进度条上方的文本 (保持不变) */
 .terraria-text-overlay {
-    font-size: 24px; /* 像素字体通常较大，调整字号 */
+    font-size: 24px;
     color: white;
     text-align: center;
     margin-bottom: 20px;
@@ -243,21 +241,22 @@ body, html {
     gap: 8px;
     position: relative;
     width: 100%;
-    padding: 0 40px; /* 为边角装饰留出空间 */
+    /* 关键改动：移除了为边角装饰留出的 padding */
+    padding: 0;
     box-sizing: border-box;
 }
 
-/* 5. 单个进度条容器 (黑背景) */
+/* 5. 单个进度条容器 (黑背景) (保持不变) */
 .terraria-bar-container {
     height: 24px;
     background-color: #000;
     border: 3px solid #583E3E;
-    border-radius: 0; /* 像素风格不需要圆角 */
+    border-radius: 0;
     padding: 3px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-/* 6. 进度条填充通用样式 */
+/* 6. 进度条填充通用样式 (保持不变) */
 .terraria-bar-fill {
     height: 100%;
     width: 0%;
@@ -267,60 +266,43 @@ body, html {
 .terraria-overall-fill { background-color: #17A427; }
 .terraria-task-fill { background-color: #A32CC4; }
 
-/* 7. 【关键修复】边角装饰 - 使用 Base64 内联图片 */
-/* 这将永久解决图片路径问题，无需外部文件 */
-.terraria-bars-wrapper::before,
-.terraria-bars-wrapper::after {
-    content: '';
-    position: absolute;
-    z-index: 10;
-    width: 60px; /* 调整为你装饰图的尺寸 */
-    height: 98px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    top: -20px;
-}
-.terraria-bars-wrapper::before {
-    left: -15px;
-    /* 一个简单的像素风左边角 (Base64编码) */
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABgCAYAAACx5S/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACYSURBVHja7cwxAQAwEAOh+jed9sD9JBYhSYULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy7c/wB7d42wAftuS7sAAAAASUVORK5CYII=');
-}
-.terraria-bars-wrapper::after {
-    right: -15px;
-    /* 一个简单的像素风右边角 (Base64编码) */
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABgCAYAAACx5S/YAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACYSURBVHja7cwxAQAwEAOh+jed9sD9JBYhSYULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy5cuHDhwsULFy7c/wB7d42wAftuS7sAAAAASUVORK5CYII=');
-}
 
-/* 8. 新增: 通用 Terraria 风格按钮 */
+/* 8. 优化后的 Terraria 风格按钮 */
 .terraria-button {
     font-family: 'Press Start 2P', cursive;
-    background-color: #4A4A6A;
+    background-color: #4A4A6A; /* 深灰色背景 */
     color: #FFF;
-    border: 3px solid #2A2A3A;
-    border-bottom: 5px solid #2A2A3A;
-    border-right: 5px solid #2A2A3A;
     padding: 15px 30px;
     font-size: 16px;
     cursor: pointer;
     text-shadow: 1px 1px 0 #000;
-    transition: all 0.1s ease-in-out;
-    margin-top: 30px; /* 与进度条的间距 */
+    transition: all 0.05s ease-in-out;
+    margin-top: 30px;
+
+    /* 【关键改动】使用 box-shadow 替代 border 来创建像素风格 */
+    border: none; /* 移除所有边框 */
+    box-shadow: 4px 4px 0 #2A2A3A; /* 添加一个4px的、无模糊的、深色的阴影 */
 }
+
 .terraria-button:hover {
-    background-color: #6A6A8A;
+    background-color: #6A6A8A; /* 悬停时变亮 */
 }
+
+/* 【关键改动】优化按钮按下的效果 */
 .terraria-button:active {
-    border-bottom: 3px solid #2A2A3A;
-    border-right: 3px solid #2A2A3A;
-    transform: translateY(2px);
+    /* 按钮向右下移动，正好填满阴影的位置，产生“被按下”的立体感 */
+    transform: translate(4px, 4px);
+    box-shadow: none; /* 按下时阴影消失 */
 }
+
 .terraria-button:disabled {
     background-color: #333;
     color: #888;
     cursor: not-allowed;
+    box-shadow: none; /* 禁用时也没有阴影 */
 }
 
-/* 9. 新增: 完成/失败后的消息框 */
+/* 9. 完成/失败后的消息框 (保持不变) */
 .terraria-completion-message {
     display: flex;
     flex-direction: column;

@@ -102,23 +102,18 @@ public class CreateWorld {
 
         this.progressEmitter = emitter;
 
+
         // 在新线程中持续读取并推送进度
         executor.execute(() -> {
             try {
                 String line;
                 // 持续读取进程的输出
                 while (activeProcess.isAlive() && (line = processReader.readLine()) != null) {
+                    if (line.contains("n") && line.contains("New World")) {
+                        break;
+                    }
                     sendSseEvent(line);
                 }
-
-                // 进程结束后，检查退出码
-                int exitCode = activeProcess.waitFor();
-                if (exitCode == 0) {
-                    sendSseEvent(SseEmitter.event().name("complete").data("世界成功创建！"));
-                } else {
-                    throw new IOException("进程异常终止，退出码: " + exitCode);
-                }
-
             } catch (Exception e) {
                 e.printStackTrace();
                 sendSseEvent(SseEmitter.event().name("error").data("错误: " + e.getMessage()));
