@@ -10,16 +10,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class CreateWorld {
 
     private final String serverPath = System.getProperty("user.home") + "/tmodloader/start-tModLoaderServer.sh";
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r,"tttttt");
+        }
+    });
 
     // --- 状态变量：用于在多个HTTP请求间保持进程状态 ---
     private volatile Process activeProcess;
@@ -59,7 +61,7 @@ public class CreateWorld {
                 if (line.contains("n") && line.contains("New World")) {
 
                     System.out.println("服务器已准备就绪。");
-  System.out.println("服务器已准备就绪222222。");
+
                     sendCommand("n");
 
                     System.out.println("启动");
@@ -77,7 +79,7 @@ public class CreateWorld {
     });
 
     // 阻塞等待，直到 readyFuture 完成或超时。可以适当增加超时时间以防万一。
-    readyFuture.get(180, TimeUnit.SECONDS); // 将超时增加到 2 分钟
+    readyFuture.get(18000, TimeUnit.SECONDS); // 将超时增加到 2 分钟
 }
 
     /**
