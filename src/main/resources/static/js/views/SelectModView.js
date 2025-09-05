@@ -21,15 +21,15 @@ const SelectModView = {
     </div>`,
 
   /**
-   * 初始化函数：现在只负责调用渲染函数。
+   * 初始化函数：只负责调用渲染函数。
    */
   init: function() {
     this.renderModList();
   },
 
   /**
-   * 渲染函数：现在是所有逻辑的中心。
-   * 它负责获取数据、渲染HTML，然后【在渲染完成后】设置所有相关的JS功能。
+   * 渲染函数：是所有逻辑的中心。
+   * 它负责获取数据、渲染HTML，然后在渲染完成后设置所有相关的JS功能。
    */
   renderModList: function() {
     const container = document.getElementById('modListContainer');
@@ -60,7 +60,7 @@ const SelectModView = {
         // 2. 将 HTML 插入到 DOM
         container.innerHTML = listHtml;
 
-        // 3. 【核心修复】在 HTML 渲染完成后，才执行依赖这些DOM元素的代码
+        // 3. 在 HTML 渲染完成后，才执行依赖这些DOM元素的代码
 
         // 3a. 设置 Uploader
         setupUploader({
@@ -75,31 +75,45 @@ const SelectModView = {
           onUploadComplete: this.renderModList.bind(this)
         });
 
-        // 3b. 设置 "下一步" 按钮的事件监听器 (这里可以使用直接绑定，因为我们每次都重新设置)
+        // 3b. 设置 "下一步" 按钮的事件监听器
         const submitBtn = document.getElementById('submitModsBtn');
         submitBtn.addEventListener('click', () => {
           if (submitBtn.disabled) return;
+
           const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
 
           if (currentWorkflow === 'createServer') {
             serverConfig.mods = selectedMods;
             alert(`模组选择成功! 已选: ${serverConfig.mods.join(', ') || '无'}`);
             loadView(SelectWorldView);
+
           } else if (currentWorkflow === 'createWorld') {
-            worldCreatorConfig.mods = selectedMods;
+            worldCreatorConfig.mods = selectedMods; // (可选) 在前端也保存一份
+
             submitBtn.disabled = true;
             statusEl.style.color = 'var(--text-secondary)';
             statusEl.innerHTML = `<i class="fas fa-cog fa-spin"></i> 正在初始化世界生成器...`;
 
-            fetch('/create/startworldcreator', { method: 'POST' })
+            // 构造只包含 mods 的请求数据
+            const requestData = {
+                mods: selectedMods
+            };
+
+            fetch('/create/startworldcreator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            })
               .then(res => {
-                if (!res.ok) throw new Error(res.statusText);
+                if (!res.ok) {
+                  return res.text().then(text => { throw new Error(text || '启动失败'); });
+                }
                 return res.text();
               })
               .then(text => {
                 console.log("服务器已准备好:", text);
                 statusEl.style.color = 'var(--success-color)';
-                statusEl.innerHTML = `✅ 初始化成功！`;
+                statusEl.innerHTML = `✅ 初始化成功！正在进入配置页面...`;
                 setTimeout(() => { loadView(SelectWorldSizeView); }, 500);
               })
               .catch(err => {
