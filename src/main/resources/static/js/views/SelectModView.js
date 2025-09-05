@@ -5,7 +5,6 @@ const SelectModView = {
       <p>为您的新服务器或新世界选择需要的模组。</p>
       <div class="content-wrapper">
         <div class="selection-area">
-          <!-- 【重要】所有动态内容，包括按钮，都在这个容器里 -->
           <div id="modListContainer">正在加载模-组-列表...</div>
         </div>
         <div id="modUploadArea" class="upload-area">
@@ -18,49 +17,43 @@ const SelectModView = {
           <br><button id="uploadAllModsBtn">开始上传</button>
         </div>
       </div>
-      <!-- 这个状态区域现在由事件委托统一管理 -->
       <div id="workflowStatus" class="step-status" style="margin-top: 20px;"></div>
     </div>`,
 
-  /**
-   * 初始化函数：只执行一次。
-   * 负责初始渲染、设置Uploader和【最重要】绑定唯一的事件监听器。
-   */
   init: function() {
-    // 1. 初始加载模组列表
     this.renderModList();
 
-    // 2. 设置Uploader，其完成回调仍然是 renderModList，用于刷新列表
+    // setupUploader 现在只需要处理它自己的按钮逻辑，
+    // showModUploaderBtn 的点击由我们的委托处理。
     setupUploader({
       dropZoneId: 'modDropZone',
       fileInputId: 'modFileInput',
       fileListId: 'modFileList',
       uploadBtnId: 'uploadAllModsBtn',
-      // 注意：showModUploaderBtn 的事件现在也由下面的委托处理
       showUploaderBtnId: 'showModUploaderBtn',
       uploaderAreaId: 'modUploadArea',
       uploadEndpoint: '/create/uploadmod',
       statusContainerId: 'modUploadStatus',
-      // 使用 .bind(this) 确保 renderModList 在回调中执行时，'this' 仍然指向 SelectModView 对象
       onUploadComplete: this.renderModList.bind(this)
     });
 
-    // 3. 【核心修复】使用事件委托
-    // 将唯一的点击事件监听器绑定到不会被重绘的父容器上
+    // 【核心修复】使用事件委托和 .closest()
     const container = document.getElementById('modListContainer');
     container.addEventListener('click', (event) => {
 
-      const target = event.target; // 获取被点击的实际元素
+      // *** 关键修正 1: 使用 .closest() 查找按钮 ***
+      // 无论用户点击的是按钮本身、文字还是图标，这都能找到父级的按钮元素。
+      const submitBtn = event.target.closest('#submitModsBtn');
+      const showUploaderBtn = event.target.closest('#showModUploaderBtn');
 
       // --- 处理 "下一步" 按钮的点击 ---
-      if (target.id === 'submitModsBtn') {
-        const submitBtn = target;
+      if (submitBtn) { // 如果找到了 submitBtn (即点击发生在按钮内部)
         if (submitBtn.disabled) {
           console.warn("按钮已被禁用，点击被忽略。");
           return;
         }
 
-        console.log("Submit button clicked via delegation! Timestamp:", Date.now());
+        console.log("Submit button clicked via delegation and closest()!");
 
         const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
 
@@ -97,23 +90,20 @@ const SelectModView = {
               console.error("初始化世界生成器时出错:", err);
               statusEl.style.color = 'var(--danger-color)';
               statusEl.innerHTML = `❌ 初始化失败: ${err.message}`;
-              submitBtn.disabled = false; // 允许重试
+              submitBtn.disabled = false;
             });
         }
       }
 
       // --- 处理 "上传新模组" 按钮的点击 ---
-      // 注意：即使这个按钮在 uploader.js 中被引用，我们也可以在这里处理它的点击事件
-      if (target.id === 'showModUploaderBtn') {
+      if (showUploaderBtn) { // 如果找到了 showUploaderBtn
+        // 阻止默认行为，以防万一
+        event.preventDefault();
         document.getElementById('modUploadArea').classList.toggle('visible');
       }
     });
   },
 
-  /**
-   * 渲染函数：可能会被多次调用（初始加载、上传后刷新）。
-   * 只负责生成HTML内容，【不】再绑定任何事件监听器。
-   */
   renderModList: function() {
     const container = document.getElementById('modListContainer');
     const statusEl = document.getElementById('workflowStatus');
