@@ -125,6 +125,7 @@ public class CreateWorld {
                 String line;
                 boolean creationInProgress = true;
                 while (creationInProgress && processToMonitor.isAlive() && (line = readerToMonitor.readLine()) != null) {
+                    System.out.println(line);
                     // 如果再次看到主菜单，说明生成已结束
                     if (line.contains("n") && line.contains("New World")) {
                         System.out.println("检测到主菜单重新出现，世界创建完成。");
