@@ -49,7 +49,7 @@ function setupUploader(options) {
     }
 
     uploadBtn.disabled = true;
-    statusContainer.innerHTML = '正在准备上传...';
+    statusContainer.innerHTML = '正在上传...';
     const uploadPromises = [];
 
     for (const file of filesToUpload) {
