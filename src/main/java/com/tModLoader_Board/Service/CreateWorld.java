@@ -37,8 +37,8 @@ public class CreateWorld {
     public void startConfigurationProcess() throws Exception {
         synchronized (processLock) {
             if (activeProcess != null && activeProcess.isAlive()) {
-                System.out.println("警告：一个世界创建进程已在运行，新的启动请求被忽略。");
-                return;
+                System.out.println("警告：一个世界创建进程已在运行,即将强制中断");
+
             }
             stopProcess(); // 启动前先确保彻底清理
 
