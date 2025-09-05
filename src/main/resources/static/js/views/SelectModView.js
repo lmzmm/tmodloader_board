@@ -5,7 +5,7 @@ const SelectModView = {
       <p>为您的新服务器或新世界选择需要的模组。</p>
       <div class="content-wrapper">
         <div class="selection-area">
-          <div id="modListContainer">正在加载模组列表...</div>
+          <div id="modListContainer">正在加载模-组-列表...</div>
         </div>
         <div id="modUploadArea" class="upload-area">
           <h3>上传模组文件</h3>
@@ -17,112 +17,120 @@ const SelectModView = {
           <br><button id="uploadAllModsBtn">开始上传</button>
         </div>
       </div>
-      <!-- 新增：用于显示流程状态的专用区域 -->
       <div id="workflowStatus" class="step-status" style="margin-top: 20px;"></div>
     </div>`,
+
+  /**
+   * 初始化函数：只执行一次。
+   */
   init: function() {
+    // 1. 初始加载模组列表
     this.renderModList();
+
+    // 2. 设置 Uploader。它会自己处理 #showModUploaderBtn 的点击事件。
+    // 我们不再用事件委托干涉它。
     setupUploader({
-      dropZoneId: 'modDropZone', fileInputId: 'modFileInput', fileListId: 'modFileList',
-      uploadBtnId: 'uploadAllModsBtn', showUploaderBtnId: 'showModUploaderBtn',
-      uploaderAreaId: 'modUploadArea', uploadEndpoint: '/create/uploadmod',
+      dropZoneId: 'modDropZone',
+      fileInputId: 'modFileInput',
+      fileListId: 'modFileList',
+      uploadBtnId: 'uploadAllModsBtn',
+      showUploaderBtnId: 'showModUploaderBtn',
+      uploaderAreaId: 'modUploadArea',
+      uploadEndpoint: '/create/uploadmod',
       statusContainerId: 'modUploadStatus',
-      onUploadComplete: this.renderModList
+      onUploadComplete: this.renderModList.bind(this)
+    });
+
+    // 3. 【精准修复】只为动态生成的 "下一步" 按钮使用事件委托
+    const container = document.getElementById('modListContainer');
+    container.addEventListener('click', (event) => {
+
+      const submitBtn = event.target.closest('#submitModsBtn');
+
+      // 如果点击的不是 "下一步" 按钮，则忽略，让其他事件（如上传按钮的）正常处理
+      if (!submitBtn) {
+        return;
+      }
+
+      // --- 统一处理 "下一步" 按钮的点击 ---
+      if (submitBtn.disabled) {
+        return;
+      }
+
+      const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
+      const statusEl = document.getElementById('workflowStatus');
+
+      // 【关键修复】根据当前工作流执行不同逻辑
+      if (currentWorkflow === 'createServer') {
+        serverConfig.mods = selectedMods;
+        alert(`模组选择成功! 已选: ${serverConfig.mods.join(', ') || '无'}`);
+        loadView(SelectWorldView); // 正确跳转到下一步
+
+      } else if (currentWorkflow === 'createWorld') {
+        worldCreatorConfig.mods = selectedMods;
+
+        submitBtn.disabled = true;
+        statusEl.style.color = 'var(--text-secondary)';
+        statusEl.innerHTML = `
+          <i class="fas fa-cog fa-spin"></i> 
+          正在初始化世界生成器... 这可能需要几十秒，请耐心等待。
+        `;
+
+        fetch('/create/startworldcreator', { method: 'POST' })
+          .then(res => {
+            if (!res.ok) {
+              return res.text().then(text => { throw new Error(text || '启动世界生成器失败'); });
+            }
+            return res.text();
+          })
+          .then(text => {
+            console.log("服务器已准备好接收配置:", text);
+            statusEl.style.color = 'var(--success-color)';
+            statusEl.innerHTML = `✅ 初始化成功！正在进入配置页面...`;
+            setTimeout(() => { loadView(SelectWorldSizeView); }, 500);
+          })
+          .catch(err => {
+            console.error("初始化世界生成器时出错:", err);
+            statusEl.style.color = 'var(--danger-color)';
+            statusEl.innerHTML = `❌ 初始化失败: ${err.message}`;
+            submitBtn.disabled = false;
+          });
+      }
     });
   },
+
+  /**
+   * 渲染函数：只负责生成HTML内容，不绑定事件。
+   */
   renderModList: function() {
     const container = document.getElementById('modListContainer');
-    const statusEl = document.getElementById('workflowStatus'); // 获取状态显示元素
+    const statusEl = document.getElementById('workflowStatus');
 
     container.innerHTML = '正在刷新模组列表...';
-    // 清空之前的状态信息
     if (statusEl) {
         statusEl.innerHTML = '';
     }
 
     fetch('/create/modlist')
       .then(response => {
-        if (!response.ok) return ['高清修复', '小地图', '物品整理', '血量显示']; // Mock data
+        if (!response.ok) return ['高清修复', '小地图', '物品整理', '血量显示'];
         return response.json();
       })
       .then(mods => {
-        let listHtml = `
-          <h3>可用模组</h3>
-          <div class="item-list">
-        `;
+        let listHtml = `<h3>可用模组</h3><div class="item-list">`;
         const currentConfig = currentWorkflow === 'createServer' ? serverConfig : worldCreatorConfig;
         mods.forEach(mod => {
           const isChecked = currentConfig.mods && currentConfig.mods.includes(mod) ? 'checked' : '';
           listHtml += `<label><input type="checkbox" name="mod" value="${mod}" ${isChecked}> ${mod}</label>`;
         });
-        listHtml += `
-          </div>
-          <br>
+        listHtml += `</div><br>
           <button id="submitModsBtn">下一步 <i class="fas fa-arrow-right"></i></button>
-          <button id="showModUploaderBtn" style="margin-left: 15px;"><i class="fas fa-upload"></i> 上传新模组</button>
-        `;
+          <button id="showModUploaderBtn" style="margin-left: 15px;"><i class="fas fa-upload"></i> 上传新模组</button>`;
+
         container.innerHTML = listHtml;
-
-        const submitBtn = document.getElementById('submitModsBtn');
-        const showUploaderBtn = document.getElementById('showModUploaderBtn');
-        showUploaderBtn.addEventListener('click', () => {
-            document.getElementById('modUploadArea').classList.toggle('visible');
-        });
-
-    submitBtn.addEventListener('click', () => {
-        const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
-
-        if (currentWorkflow === 'createServer') {
-            // ... (创建服务器的逻辑不变) ...
-        } else if (currentWorkflow === 'createWorld') {
-            worldCreatorConfig.mods = selectedMods; // 保存模组选择
-
-            // --- 开始执行带等待反馈的初始化流程 ---
-
-            // 1. 禁用按钮，防止重复点击
-            submitBtn.disabled = true;
-
-            // 2. 显示明确的等待信息
-            statusEl.style.color = 'var(--text-secondary)';
-            statusEl.innerHTML = `
-                <i class="fas fa-cog fa-spin"></i> 
-                正在初始化世界生成器... 这可能需要几十秒，请耐心等待。
-            `;
-
-            // 3. 调用后端，启动并等待进程就绪
-            fetch('/create/startworldcreator', { method: 'POST' })
-            .then(res => {
-                if (!res.ok) {
-                    // 如果服务器返回错误，则抛出异常
-                    return res.text().then(text => { throw new Error(text || '启动世界生成器失败'); });
-                }
-                return res.text(); // "OK"
-            })
-            .then(text => {
-                // 4. 后端确认就绪后，才进入下一步
-                console.log("服务器已准备好接收配置:", text);
-
-                // (可选) 显示一个短暂的成功提示
-                statusEl.style.color = 'var(--success-color)';
-                statusEl.innerHTML = `✅ 初始化成功！正在进入配置页面...`;
-
-                setTimeout(() => {
-                    loadView(SelectWorldSizeView);
-                }, 500); // 延迟半秒跳转，让用户看到成功提示
-
-            })
-            .catch(err => {
-                // 5. 捕获任何错误
-                console.error("初始化世界生成器时出错:", err);
-                statusEl.style.color = 'var(--danger-color)';
-                statusEl.innerHTML = `❌ 初始化失败: ${err.message}`;
-
-                // 重新启用按钮，以便用户可以重试
-                submitBtn.disabled = false;
-            });
-        }
-    });
       })
-      .catch(err => { container.innerHTML = '加载模组列表失败: ' + err.message; });
+      .catch(err => {
+        container.innerHTML = '加载模组列表失败: ' + err.message;
+      });
   }
 };
