@@ -21,23 +21,26 @@ public class CreateWorld {
     private final String serverPath = System.getProperty("user.home") + "/tmodloader/start-tModLoaderServer.sh";
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    // --- 状态变量 ---
     private volatile Process activeProcess;
     private volatile BufferedWriter processWriter;
     private volatile BufferedReader processReader;
     private volatile SseEmitter progressEmitter;
 
+    // 专门的锁对象，用于保护对上述共享资源的访问
     private final Object processLock = new Object();
 
     /**
-     * 启动并准备 tModLoader 进程
+     * 启动并准备tModLoader进程。
+     * @throws Exception 如果进程启动失败或在规定时间内未准备就绪。
      */
     public void startConfigurationProcess() throws Exception {
         synchronized (processLock) {
             if (activeProcess != null && activeProcess.isAlive()) {
-                System.out.println("警告：世界创建进程已在运行，本次启动请求被忽略。");
+                System.out.println("警告：一个世界创建进程已在运行，新的启动请求被忽略。");
                 return;
             }
-            stopProcess(); // 确保清理旧的
+            stopProcess(); // 启动前先确保彻底清理
 
             System.out.println("正在启动世界创建配置流程...");
             List<String> command = new ArrayList<>();
@@ -75,6 +78,9 @@ public class CreateWorld {
         readyFuture.get(120, TimeUnit.SECONDS);
     }
 
+    /**
+     * 向正在运行的进程发送配置指令。
+     */
     public void sendCommand(String command) throws IOException {
         BufferedWriter writer;
         synchronized (processLock) {
@@ -89,6 +95,9 @@ public class CreateWorld {
         writer.flush();
     }
 
+    /**
+     * 附加到进程并开始流式传输世界生成进度。
+     */
     public void streamProgress(SseEmitter emitter) {
         final Process processToMonitor;
         final BufferedReader readerToMonitor;
@@ -109,21 +118,20 @@ public class CreateWorld {
                 String line;
                 boolean creationInProgress = true;
                 while (creationInProgress && processToMonitor.isAlive() && (line = readerToMonitor.readLine()) != null) {
-                    System.out.println(line);
-//                    if (line.contains("n") && line.contains("New World")) {
-//                        System.out.println("检测到主菜单重新出现，世界创建完成。");
-//                        sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
-//                        creationInProgress = false;
-//                        continue;
-//                    }
+                    if (line.contains("n") && line.contains("New World")) {
+                        System.out.println("检测到主菜单重新出现，世界创建完成。");
+                        sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
+                        creationInProgress = false;
+                        continue;
+                    }
                     sendSseEvent(line);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 sendSseEvent(SseEmitter.event().name("error").data("错误: " + e.getMessage()));
             } finally {
-                System.out.println("监控任务结束，正在停止进程...");
-                stopProcess();
+                System.out.println("监控任务结束，正在停止整个进程树...");
+                stopProcess(); // 任务完成或出错，主动停止整个进程树
                 if (progressEmitter != null) {
                     progressEmitter.complete();
                 }
@@ -131,20 +139,52 @@ public class CreateWorld {
         });
     }
 
+    /**
+     * 【关键修复】停止正在运行的进程及其所有子进程。
+     * 使用 Java 9+ 的 ProcessHandle API 来确保彻底清理。
+     */
     public void stopProcess() {
         synchronized (processLock) {
+            // 总是先关闭流
             if (processWriter != null) try { processWriter.close(); } catch (IOException ignored) {}
             if (processReader != null) try { processReader.close(); } catch (IOException ignored) {}
+
             if (activeProcess != null) {
-                activeProcess.destroyForcibly();
-                System.out.println("活动进程已被销毁。");
+                long pid = activeProcess.pid();
+                System.out.println("正在尝试销毁进程树 (父进程 PID: " + pid + ")");
+
+                try {
+                    // 1. 获取进程的句柄
+                    ProcessHandle handle = ProcessHandle.of(pid)
+                        .orElseThrow(() -> new IllegalStateException("无法找到 PID 为 " + pid + " 的进程句柄。"));
+
+                    // 2. 递归地销毁所有后代进程
+                    handle.descendants().forEach(child -> {
+                        System.out.println("正在强制销毁子进程 (PID: " + child.pid() + ")");
+                        child.destroyForcibly();
+                    });
+
+                    // 3. 最后销毁主进程本身
+                    handle.destroyForcibly();
+                    System.out.println("活动进程树已被成功销毁。");
+
+                } catch (Exception e) {
+                    System.err.println("销毁进程树时发生错误，回退到简单销毁: " + e.getMessage());
+                    // 如果 ProcessHandle 失败，仍然尝试旧的方法作为最后的保险
+                    activeProcess.destroyForcibly();
+                }
             }
+
+            // 清理所有引用
             activeProcess = null;
             processWriter = null;
             processReader = null;
         }
     }
 
+    /**
+     * 安全地发送 SSE 事件。
+     */
     private void sendSseEvent(Object data) {
         if (this.progressEmitter != null) {
             try {
@@ -154,7 +194,7 @@ public class CreateWorld {
                     this.progressEmitter.send(SseEmitter.event().data(data));
                 }
             } catch (IOException e) {
-                System.err.println("发送 SSE 事件失败: " + e.getMessage());
+                System.err.println("发送 SSE 事件失败 (客户端可能已断开连接): " + e.getMessage());
             }
         }
     }
