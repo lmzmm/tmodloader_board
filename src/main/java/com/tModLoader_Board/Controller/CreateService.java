@@ -78,7 +78,7 @@ public class CreateService {
     }
 
     @PostMapping("/create/startworldcreator")
-    public String startWorldCreatorProcess(@RequestParam GameConfig config) {
+    public String startWorldCreatorProcess(@RequestBody GameConfig config) {
         try {
             startService.enableMods(config.getMods(), modPath + "enabled.json");
             createWorld.startConfigurationProcess();
