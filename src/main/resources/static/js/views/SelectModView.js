@@ -92,7 +92,7 @@ const SelectModView = {
 
             submitBtn.disabled = true;
             statusEl.style.color = 'var(--text-secondary)';
-            statusEl.innerHTML = `<i class="fas fa-cog fa-spin"></i> 正在初始化世界生成器...`;
+            statusEl.innerHTML = `<i class="fas fa-cog fa-spin"></i> 正在初始化世界生成器...这可能需要一些时间...`;
 
             // 构造只包含 mods 的请求数据
             const requestData = {

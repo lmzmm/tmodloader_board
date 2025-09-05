@@ -1,7 +1,7 @@
 const ServerSettingsView = {
   html: `
     <div class="card">
-      <h2><i class="fas fa-cogs"></i> 第三步: 服务器设置</h2>
+      <h2><i class="fas fa-cogs"></i>服务器设置</h2>
       <div class="form-group"><label for="maxPlayers">最大玩家数</label><input type="number" id="maxPlayers" value="8"></div>
       <div class="form-group"><label for="serverPort">服务器端口</label><input type="number" id="serverPort" value="7777"></div>
       <div class="form-group"><label for="serverPassword">服务器密码 (可选)</label><input type="password" id="serverPassword" placeholder="留空则无密码"></div>

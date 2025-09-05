@@ -1,7 +1,7 @@
 const SelectWorldView = {
     html: `
     <div class="card">
-      <h2><i class="fas fa-globe-americas"></i> 第二步: 选择世界</h2>
+      <h2><i class="fas fa-globe-americas"></i>选择世界</h2>
       <div class="content-wrapper">
         <div class="selection-area">
           <div id="worldListContainer">正在加载世界列表...</div><br>
