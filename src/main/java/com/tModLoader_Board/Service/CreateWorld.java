@@ -110,12 +110,12 @@ public class CreateWorld {
                 boolean creationInProgress = true;
                 while (creationInProgress && processToMonitor.isAlive() && (line = readerToMonitor.readLine()) != null) {
                     System.out.println(line);
-                    if (line.contains("n") && line.contains("New World")) {
-                        System.out.println("检测到主菜单重新出现，世界创建完成。");
-                        sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
-                        creationInProgress = false;
-                        continue;
-                    }
+//                    if (line.contains("n") && line.contains("New World")) {
+//                        System.out.println("检测到主菜单重新出现，世界创建完成。");
+//                        sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
+//                        creationInProgress = false;
+//                        continue;
+//                    }
                     sendSseEvent(line);
                 }
             } catch (Exception e) {
