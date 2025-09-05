@@ -195,6 +195,10 @@ body, html {
     font-weight: 500;
     transition: color 0.3s ease;
 }
+.step-status.loading { color: var(--text-secondary); }
+.step-status.success { color: var(--success-color); }
+.step-status.error   { color: var(--danger-color); }
+
 /* in css/style.css */
 
 /* --- Terraria Progress View Styles (Final Polished Version) --- */
