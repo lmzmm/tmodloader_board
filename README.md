@@ -4,3 +4,23 @@
 
 <img width="2548" height="1244" alt="image" src="https://github.com/user-attachments/assets/14422b18-a879-4218-bb95-c78c24069ecb" />
 
+<img width="2559" height="1260" alt="image" src="https://github.com/user-attachments/assets/842c13e7-a1ca-48d9-8ac5-167c39fb71a7" />
+
+
+
+
+执行jar包以启动控制台
+
+确保存在以下目录：
+
+用户目录/.local/share/Terraria/tModLoader/Mods/
+
+用户目录/.local/share/Terraria/tModLoader/Worlds/
+
+将tModLoader.zip解压至以下文件夹：
+
+用户目录/tmodloader/
+
+Debian和Ubuntu可以直接运行tmodtask.sh
+
+默认使用8088端口
