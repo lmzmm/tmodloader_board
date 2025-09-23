@@ -75,7 +75,7 @@ public class CreateWorld {
             }
         });
 
-        readyFuture.get(120, TimeUnit.SECONDS);
+        readyFuture.get(240, TimeUnit.SECONDS);
     }
 
     /**

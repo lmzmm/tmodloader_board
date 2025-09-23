@@ -1,23 +1,26 @@
 /* --- 1. 全局变量与基础设置 --- */
 :root {
   --font-family: 'Poppins', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  --primary-color: #3498db;
-  --primary-color-dark: #2980b9;
-  --sidebar-bg: #2c3e50;
-  --sidebar-bg-hover: #34495e;
-  --content-bg: #f4f7fa;
+  --primary-color: #4361ee;
+  --primary-color-dark: #3a56d4;
+  --primary-color-light: #edf2ff;
+  --sidebar-bg: #1d2d50;
+  --sidebar-bg-hover: #2d406b;
+  --content-bg: #f8f9fa;
   --card-bg: #ffffff;
-  --text-dark: #2c3e50;
-  --text-light: #ecf0f1;
-  --text-secondary: #7f8c8d;
+  --text-dark: #333333;
+  --text-light: #f8f9fa;
+  --text-secondary: #6c757d;
   --border-color: #e1e5e8;
-  --danger-color: #e74c3c;
-  --danger-color-dark: #c0392b;
-  --warning-color: #f39c12;
-  --warning-color-dark: #d35400;
-  --success-color: #27ae60;
+  --danger-color: #e63946;
+  --danger-color-dark: #c1121f;
+  --warning-color: #ffb703;
+  --warning-color-dark: #fb8500;
+  --success-color: #2a9d8f;
+  --success-color-light: #a8dadc;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --border-radius: 8px;
+  --border-radius: 10px;
+  --transition: all 0.3s ease;
 }
 
 body, html {
@@ -26,25 +29,78 @@ body, html {
   background-color: var(--content-bg);
   font-size: 16px;
   color: var(--text-dark);
+  overflow-x: hidden;
 }
 
-*, *:before, *:after { box-sizing: border-box; }
+*, *:before, *:after { 
+  box-sizing: border-box; 
+}
 
 /* --- 2. 布局 --- */
-.container { display: flex; height: 100vh; }
+.container { 
+  display: flex; 
+  height: 100vh;
+  animation: fadeIn 0.5s ease;
+}
+
 .sidebar {
-  width: 240px; background-color: var(--sidebar-bg); color: var(--text-light);
-  display: flex; flex-direction: column; flex-shrink: 0;
-  transition: width 0.3s ease;
+  width: 260px; 
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, #14213d 100%);
+  color: var(--text-light);
+  display: flex; 
+  flex-direction: column; 
+  flex-shrink: 0;
+  transition: var(--transition);
+  box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
 }
+
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></svg>');
+  background-size: 20px 20px;
+}
+
 .sidebar-header {
-  padding: 25px 20px; text-align: center;
-  border-bottom: 1px solid var(--sidebar-bg-hover);
+  padding: 30px 20px; 
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
 }
-.sidebar-header h3 { margin: 0; }
+
+.sidebar-header h3 { 
+  margin: 0; 
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .content {
-  flex-grow: 1; padding: 30px;
+  flex-grow: 1; 
+  padding: 30px;
   overflow-y: auto;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+  position: relative;
+}
+
+.content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="1" fill="rgba(67, 97, 238, 0.03)"/></svg>');
+  background-size: 20px 20px;
+  z-index: -1;
 }
 
 /* --- 3. 组件样式 --- */
@@ -54,150 +110,401 @@ body, html {
   background-color: var(--card-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
-  padding: 25px;
-  margin-bottom: 20px;
+  padding: 30px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--transition);
+  animation: slideUp 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--primary-color), var(--success-color));
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 /* 侧边栏按钮 */
 .sidebar button {
-  background: none; border: none; color: var(--text-light); padding: 20px;
-  text-align: left; font-size: 16px; cursor: pointer;
+  background: none; 
+  border: none; 
+  color: var(--text-light); 
+  padding: 18px 20px;
+  text-align: left; 
+  font-size: 16px; 
+  cursor: pointer;
   border-left: 4px solid transparent;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  overflow: hidden;
 }
-.sidebar button i { margin-right: 15px; width: 20px; text-align: center; }
-.sidebar button:hover { background-color: var(--sidebar-bg-hover); }
+
+.sidebar button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.sidebar button:hover::after {
+  transform: translateX(0);
+}
+
+.sidebar button i { 
+  margin-right: 15px; 
+  width: 20px; 
+  text-align: center; 
+  font-size: 1.1em;
+}
+
+.sidebar button:hover { 
+  background-color: var(--sidebar-bg-hover); 
+}
+
 .sidebar button.active {
-  background-color: var(--sidebar-bg-hover);
+  background-color: rgba(255, 255, 255, 0.1);
   border-left: 4px solid var(--primary-color);
   font-weight: 600;
+}
+
+.sidebar button.active::after {
+  background: rgba(67, 97, 238, 0.2);
+  transform: translateX(0);
 }
 
 /* 内容区域标题 */
 .content h2 {
   color: var(--text-dark);
-  border-bottom: 2px solid var(--border-color);
-  padding-bottom: 15px; margin-top: 0;
+  padding-bottom: 15px; 
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.content h3 { color: var(--text-dark); }
+
+.content h2::after {
+  content: "";
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(to right, var(--primary-color), transparent);
+  border-radius: 3px;
+}
+
+.content h3 { 
+  color: var(--text-dark); 
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 /* 按钮 */
 .content button {
-  padding: 12px 24px; font-size: 16px;
-  cursor: pointer; background-color: var(--primary-color); color: white;
-  border: none; border-radius: var(--border-radius);
-  transition: all 0.3s ease;
+  padding: 12px 24px; 
+  font-size: 16px;
+  cursor: pointer; 
+  background-color: var(--primary-color); 
+  color: white;
+  border: none; 
+  border-radius: var(--border-radius);
+  transition: var(--transition);
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
 }
+
+.content button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+
+.content button:hover::before {
+  transform: translateX(100%);
+}
+
 .content button:hover {
   background-color: var(--primary-color-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+  box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
 }
+
+.content button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(67, 97, 238, 0.3);
+}
+
 .content button:disabled {
-  background-color: #bdc3c7; cursor: not-allowed;
-  transform: none; box-shadow: none;
+  background-color: #bdc3c7; 
+  cursor: not-allowed;
+  transform: none; 
+  box-shadow: none;
+  opacity: 0.7;
 }
+
 .actions button {
-  padding: 8px 15px; font-size: 14px; margin-left: 10px;
+  padding: 8px 15px; 
+  font-size: 14px; 
+  margin-left: 10px;
 }
 
 /* 表单与输入框 */
-.form-group, .control-group { margin-bottom: 20px; }
+.form-group, .control-group { 
+  margin-bottom: 25px; 
+}
+
 .form-group label, .control-group label {
-  display: block; margin-bottom: 8px; font-weight: 500;
+  display: block; 
+  margin-bottom: 10px; 
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 1.05rem;
 }
+
 .form-group input, .control-group input {
-  width: 100%; max-width: 400px; padding: 12px;
-  border: 1px solid var(--border-color);
+  width: 100%; 
+  max-width: 400px; 
+  padding: 14px;
+  border: 2px solid #e9ecef;
   border-radius: var(--border-radius);
-  font-size: 16px; transition: border-color 0.3s, box-shadow 0.3s;
+  font-size: 16px; 
+  transition: var(--transition);
+  background-color: #f8f9fa;
 }
+
 .form-group input:focus, .control-group input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+  background-color: white;
 }
 
 /* 列表项 (服务器, 玩家, Mod) */
-.item-list label {
-  display: block; margin-bottom: 10px; background-color: #f8f9fa;
-  padding: 15px; border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-  cursor: pointer; transition: all 0.2s ease;
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
+
+.item-list label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  background-color: #f8f9fa;
+  padding: 18px 20px;
+  border-radius: var(--border-radius);
+  border: 2px solid #e9ecef;
+  cursor: pointer; 
+  transition: var(--transition);
+  font-size: 1.05rem;
+}
+
 .item-list label:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.item-list label input {
+  margin-right: 15px;
+  width: 20px;
+  height: 20px;
 }
 
 .server-item, .player-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px; background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  padding: 20px; 
+  background-color: var(--card-bg);
+  border: 2px solid #e9ecef;
   border-radius: var(--border-radius);
   margin-bottom: 15px;
-  transition: all 0.3s ease;
+  transition: var(--transition);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
 }
+
 .server-item:hover, .player-item:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--primary-color-light);
 }
+
 .server-item span, .player-item span {
-  font-weight: 600; color: var(--text-dark);
+  font-weight: 600; 
+  color: var(--text-dark);
   font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+
 .server-item .status {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     background-color: var(--success-color);
     border-radius: 50%;
     margin-right: 15px;
+    box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.2);
 }
 
 /* 特殊按钮颜色 */
-.actions .btn-stop, .actions .btn-ban { background-color: var(--danger-color); }
-.actions .btn-stop:hover, .actions .btn-ban:hover { background-color: var(--danger-color-dark); box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4); }
-.actions .btn-kick { background-color: var(--warning-color); }
-.actions .btn-kick:hover { background-color: var(--warning-color-dark); box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4); }
-#backToServerListBtn { background-color: var(--text-secondary); }
-#backToServerListBtn:hover { background-color: #95a5a6; box-shadow: 0 6px 15px rgba(127, 140, 141, 0.4); }
+.actions .btn-stop, .actions .btn-ban { 
+  background-color: var(--danger-color); 
+}
+
+.actions .btn-stop:hover, .actions .btn-ban:hover { 
+  background-color: var(--danger-color-dark); 
+  box-shadow: 0 6px 15px rgba(230, 57, 70, 0.4); 
+}
+
+.actions .btn-kick { 
+  background-color: var(--warning-color); 
+  color: var(--text-dark);
+}
+
+.actions .btn-kick:hover { 
+  background-color: var(--warning-color-dark); 
+  box-shadow: 0 6px 15px rgba(255, 183, 3, 0.4); 
+}
+
+#backToServerListBtn { 
+  background-color: var(--text-secondary); 
+}
+
+#backToServerListBtn:hover { 
+  background-color: #5a6268; 
+  box-shadow: 0 6px 15px rgba(108, 117, 125, 0.4); 
+}
 
 /* 上传区域 */
-.content-wrapper { display: flex; gap: 30px; }
-.selection-area, .control-panel { flex-grow: 1; }
+.content-wrapper { 
+  display: flex; 
+  gap: 30px; 
+  flex-wrap: wrap;
+}
+
+.selection-area, .control-panel { 
+  flex-grow: 1; 
+  min-width: 300px;
+}
+
 .upload-area {
-  width: 350px; flex-shrink: 0; background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
+  width: 100%;
+  max-width: 350px; 
+  flex-shrink: 0; 
+  background-color: var(--card-bg);
+  border: 2px dashed var(--border-color);
   border-radius: var(--border-radius);
-  padding: 20px; display: none;
+  padding: 25px; 
+  display: none;
+  transition: var(--transition);
 }
-.upload-area.visible { display: block; }
+
+.upload-area.visible { 
+  display: block; 
+  animation: fadeIn 0.3s ease;
+}
+
 .drop-zone {
-  border: 2px dashed var(--primary-color); border-radius: var(--border-radius);
-  padding: 40px 20px; text-align: center; color: var(--primary-color);
-  cursor: pointer; transition: all 0.3s;
+  border: 2px dashed var(--primary-color); 
+  border-radius: var(--border-radius);
+  padding: 40px 20px; 
+  text-align: center; 
+  color: var(--primary-color);
+  cursor: pointer; 
+  transition: var(--transition);
+  background-color: rgba(67, 97, 238, 0.03);
 }
-.drop-zone i { font-size: 2.5em; margin-bottom: 15px; }
+
+.drop-zone i { 
+  font-size: 2.5em; 
+  margin-bottom: 15px; 
+  display: block;
+}
+
 .drop-zone.dragover {
-  background-color: #eaf5ff; border-style: solid; color: var(--primary-color-dark);
+  background-color: rgba(67, 97, 238, 0.1); 
+  border-style: solid; 
+  color: var(--primary-color-dark);
+  transform: scale(1.02);
 }
 
 /* 状态消息 */
-.status-success { color: var(--success-color); font-weight: 500; }
-.status-fail { color: var(--danger-color); font-weight: 500; }
-#creationStatus, #controlPanelStatus { font-size: 1.1em; }
+.status-success { 
+  color: var(--success-color); 
+  font-weight: 500; 
+}
+
+.status-fail { 
+  color: var(--danger-color); 
+  font-weight: 500; 
+}
+
+#creationStatus, #controlPanelStatus { 
+  font-size: 1.1em; 
+  padding: 15px;
+  border-radius: var(--border-radius);
+}
+
 .step-status {
     margin-top: 15px;
-    min-height: 24px; /* 防止内容加载时页面跳动 */
+    min-height: 24px;
     font-weight: 500;
     transition: color 0.3s ease;
+    padding: 12px;
+    border-radius: var(--border-radius);
+    background-color: rgba(0, 0, 0, 0.02);
 }
-.step-status.loading { color: var(--text-secondary); }
-.step-status.success { color: var(--success-color); }
-.step-status.error   { color: var(--danger-color); }
+
+.step-status.loading { 
+  color: var(--text-secondary); 
+  background-color: rgba(108, 117, 125, 0.1);
+}
+
+.step-status.success { 
+  color: var(--success-color); 
+  background-color: rgba(42, 157, 143, 0.1);
+}
+
+.step-status.error   { 
+  color: var(--danger-color); 
+  background-color: rgba(230, 57, 70, 0.1);
+}
 
 /* in css/style.css */
 
@@ -211,11 +518,24 @@ body, html {
     align-items: center;
     width: 100%;
     height: 100%;
-    background: url('background.jpg') no-repeat center center;
-    background-size: cover;
+    background: linear-gradient(135deg, #2d545e 0%, #1a3c40 100%);
     padding: 20px;
     box-sizing: border-box;
     font-family: 'Press Start 2P', cursive;
+    position: relative;
+    overflow: hidden;
+}
+
+.terraria-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1"/></svg>');
+  background-size: 40px 40px;
+  z-index: 0;
 }
 
 /* 2. 进度条的整体包装器 (保持不变) */
@@ -226,130 +546,242 @@ body, html {
     display: flex;
     flex-direction: column;
     align-items: center;
+    z-index: 1;
 }
 
 /* 3. 进度条上方的文本 (保持不变) */
 .terraria-text-overlay {
-    font-size: 24px;
+    font-size: 18px;
     color: white;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     text-shadow: 2px 2px 0 #000;
     line-height: 1.5;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--border-radius);
+    width: 100%;
 }
 
 /* 4. 双进度条容器 */
 .terraria-bars-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 15px;
     position: relative;
     width: 100%;
-    /* 关键改动：移除了为边角装饰留出的 padding */
     padding: 0;
     box-sizing: border-box;
 }
 
 /* 5. 单个进度条容器 (黑背景) (保持不变) */
 .terraria-bar-container {
-    height: 24px;
+    height: 30px;
     background-color: #000;
     border: 3px solid #583E3E;
     border-radius: 0;
     padding: 3px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    box-shadow: 0 0 15px rgba(0,0,0,0.7);
+    position: relative;
+    overflow: hidden;
+}
+
+.terraria-bar-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: progressShine 2s infinite;
 }
 
 /* 6. 进度条填充通用样式 (保持不变) */
 .terraria-bar-fill {
     height: 100%;
     width: 0%;
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.4);
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.4);
     transition: width 0.2s linear;
+    position: relative;
 }
-.terraria-overall-fill { background-color: #17A427; }
-.terraria-task-fill { background-color: #A32CC4; }
 
+.terraria-bar-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: progressShine 1s infinite;
+}
+
+.terraria-overall-fill { 
+  background: linear-gradient(90deg, #17A427, #2ecc71); 
+}
+
+.terraria-task-fill { 
+  background: linear-gradient(90deg, #A32CC4, #9b59b6); 
+}
 
 /* 8. 优化后的 Terraria 风格按钮 */
 .terraria-button {
     font-family: 'Press Start 2P', cursive;
-    background-color: #4A4A6A; /* 深灰色背景 */
+    background-color: #4A4A6A;
     color: #FFF;
     padding: 15px 30px;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
     text-shadow: 1px 1px 0 #000;
     transition: all 0.05s ease-in-out;
     margin-top: 30px;
-
-    /* 【关键改动】使用 box-shadow 替代 border 来创建像素风格 */
-    border: none; /* 移除所有边框 */
-    box-shadow: 4px 4px 0 #2A2A3A; /* 添加一个4px的、无模糊的、深色的阴影 */
+    border: none;
+    box-shadow: 4px 4px 0 #2A2A3A;
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
 }
 
 .terraria-button:hover {
-    background-color: #6A6A8A; /* 悬停时变亮 */
+    background-color: #6A6A8A;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 #2A2A3A;
 }
 
-/* 【关键改动】优化按钮按下的效果 */
 .terraria-button:active {
-    /* 按钮向右下移动，正好填满阴影的位置，产生“被按下”的立体感 */
     transform: translate(4px, 4px);
-    box-shadow: none; /* 按下时阴影消失 */
+    box-shadow: none;
 }
 
 .terraria-button:disabled {
     background-color: #333;
     color: #888;
     cursor: not-allowed;
-    box-shadow: none; /* 禁用时也没有阴影 */
+    box-shadow: none;
+    transform: none;
 }
 
 .terraria-text-button {
-    /* 继承字体和边距 */
     font-family: 'Press Start 2P', cursive;
-    font-size: 16px;
+    font-size: 14px;
     color: #FFF;
     text-shadow: 2px 2px 0 #000;
     margin-top: 30px;
     cursor: pointer;
-
-    /* 关键改动：移除背景和边框，使其透明 */
     background: none;
     border: none;
-    padding: 10px; /* 增加一点内边距，扩大点击区域 */
+    padding: 15px;
     box-shadow: none;
     transition: all 0.1s ease-in-out;
+    position: relative;
+}
+
+.terraria-text-button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #FFF;
+  transition: width 0.3s ease;
+}
+
+.terraria-text-button:hover::after {
+  width: 100%;
 }
 
 .terraria-text-button:hover {
-    /* 鼠标悬停时，给一点视觉反馈，例如变亮或加下划线 */
-    color: #FFD700; /* 变成金色 */
-    text-decoration: underline;
+    color: #FFD700;
 }
 
 .terraria-text-button:active {
-    /* 按下时，稍微移动一点位置 */
     transform: translateY(2px);
 }
 
 .terraria-text-button:disabled {
-    color: #888; /* 禁用时变灰 */
+    color: #888;
     cursor: not-allowed;
     text-decoration: none;
 }
 
-/* 9. 完成/失败后的消息框 (保持不变) */
 .terraria-completion-message {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.75);
+    background-color: rgba(0, 0, 0, 0.85);
     padding: 40px;
     border: 3px solid #583E3E;
     text-align: center;
     color: white;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.8;
+    border-radius: 5px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    z-index: 1;
+    max-width: 800px;
+}
+
+/* 动画定义 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progressShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+  
+  .content {
+    padding: 20px;
+  }
+  
+  .content-wrapper {
+    flex-direction: column;
+  }
+  
+  .upload-area {
+    max-width: 100%;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+  
+  .content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .terraria-text-overlay {
+    font-size: 14px;
+  }
+  
+  .terraria-button, .terraria-text-button {
+    font-size: 12px;
+    padding: 12px 20px;
+  }
 }

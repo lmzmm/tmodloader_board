@@ -5,16 +5,23 @@ const SelectModView = {
       <p>为您的新服务器或新世界选择需要的模组。</p>
       <div class="content-wrapper">
         <div class="selection-area">
-          <div id="modListContainer">正在加载模-组-列表...</div>
+          <div id="modListContainer">正在加载模组列表...</div>
         </div>
         <div id="modUploadArea" class="upload-area">
-          <h3>上传模组文件</h3>
-          <div id="modDropZone" class="drop-zone"><i class="fas fa-cloud-upload-alt"></i><p>拖动文件到此处，或点击选择</p></div>
+          <h3><i class="fas fa-upload"></i> 上传模组文件</h3>
+          <div id="modDropZone" class="drop-zone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>拖动文件到此处，或点击选择</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">支持 .tmod 文件</p>
+          </div>
           <input type="file" id="modFileInput" multiple style="display: none;">
-          <h4>待上传列表：</h4>
+          <h4><i class="fas fa-list"></i> 待上传列表：</h4>
           <div id="modFileList" class="file-list-container"></div>
           <div id="modUploadStatus"></div>
-          <br><button id="uploadAllModsBtn">开始上传</button>
+          <br>
+          <button id="uploadAllModsBtn" style="width: 100%;">
+            <i class="fas fa-arrow-up"></i> 开始上传
+          </button>
         </div>
       </div>
       <div id="workflowStatus" class="step-status" style="margin-top: 20px;"></div>
@@ -35,7 +42,7 @@ const SelectModView = {
     const container = document.getElementById('modListContainer');
     const statusEl = document.getElementById('workflowStatus');
 
-    container.innerHTML = '正在刷新模组列表...';
+    container.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> 正在刷新模组列表...</p>';
     if (statusEl) {
         statusEl.innerHTML = '';
     }
@@ -47,15 +54,21 @@ const SelectModView = {
       })
       .then(mods => {
         // 1. 准备 HTML
-        let listHtml = `<h3>可用模组</h3><div class="item-list">`;
+        let listHtml = `<h3><i class="fas fa-boxes"></i> 可用模组</h3><div class="item-list">`;
         const currentConfig = currentWorkflow === 'createServer' ? serverConfig : worldCreatorConfig;
         mods.forEach(mod => {
           const isChecked = currentConfig.mods && currentConfig.mods.includes(mod) ? 'checked' : '';
           listHtml += `<label><input type="checkbox" name="mod" value="${mod}" ${isChecked}> ${mod}</label>`;
         });
         listHtml += `</div><br>
-          <button id="submitModsBtn">下一步 <i class="fas fa-arrow-right"></i></button>
-          <button id="showModUploaderBtn" style="margin-left: 15px;"><i class="fas fa-upload"></i> 上传新模组</button>`;
+          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <button id="submitModsBtn" style="flex: 1; min-width: 200px;">
+              <i class="fas fa-arrow-right"></i> 下一步
+            </button>
+            <button id="showModUploaderBtn" style="flex: 1; min-width: 200px;">
+              <i class="fas fa-upload"></i> 上传新模组
+            </button>
+          </div>`;
 
         // 2. 将 HTML 插入到 DOM
         container.innerHTML = listHtml;
@@ -126,7 +139,7 @@ const SelectModView = {
         });
       })
       .catch(err => {
-        container.innerHTML = '加载模组列表失败: ' + err.message;
+        container.innerHTML = '<p style="color: var(--danger-color);"><i class="fas fa-exclamation-circle"></i> 加载模组列表失败: ' + err.message + '</p>';
       });
   }
 };
