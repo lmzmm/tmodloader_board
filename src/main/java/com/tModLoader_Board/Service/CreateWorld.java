@@ -116,7 +116,7 @@ public class CreateWorld {
     executor.execute(() -> {
         long lastNormalOutputTime = System.currentTimeMillis();
         long exceptionDetectedTime = -1; // -1 表示当前没有异常待处理
-        final long EXCEPTION_TIMEOUT = 12000; // 12 秒无正常输出 → 视为不可恢复异常
+        final long EXCEPTION_TIMEOUT = 120000; // 120 秒无正常输出 → 视为不可恢复异常
 
         try {
             String line;
