@@ -99,45 +99,92 @@ public class CreateWorld {
      * 附加到进程并开始流式传输世界生成进度。
      */
     public void streamProgress(SseEmitter emitter) {
-        final Process processToMonitor;
-        final BufferedReader readerToMonitor;
+    final Process processToMonitor;
+    final BufferedReader readerToMonitor;
 
-        synchronized (processLock) {
-            if (activeProcess == null || processReader == null) {
-                emitter.completeWithError(new IllegalStateException("没有正在运行的世界创建进程可供监控。"));
-                return;
-            }
-            processToMonitor = this.activeProcess;
-            readerToMonitor = this.processReader;
+    synchronized (processLock) {
+        if (activeProcess == null || processReader == null) {
+            emitter.completeWithError(new IllegalStateException("没有正在运行的世界创建进程可供监控。"));
+            return;
         }
+        processToMonitor = this.activeProcess;
+        readerToMonitor = this.processReader;
+    }
 
-        this.progressEmitter = emitter;
+    this.progressEmitter = emitter;
 
-        executor.execute(() -> {
-            try {
-                String line;
-                boolean creationInProgress = true;
-                while (creationInProgress && processToMonitor.isAlive() && (line = readerToMonitor.readLine()) != null) {
-                    if (line.contains("n") && line.contains("New World")) {
-                        System.out.println("检测到主菜单重新出现，世界创建完成。");
-                        sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
-                        creationInProgress = false;
-                        continue;
-                    }
-                    sendSseEvent(line);
+    executor.execute(() -> {
+        long lastNormalOutputTime = System.currentTimeMillis();
+        long exceptionDetectedTime = -1; // -1 表示当前没有异常待处理
+        final long EXCEPTION_TIMEOUT = 12000; // 12 秒无正常输出 → 视为不可恢复异常
+
+        try {
+            String line;
+
+            while (processToMonitor.isAlive() && (line = safeReadLine(readerToMonitor)) != null) {
+
+                boolean isExceptionLine =
+                        line.contains("Exception") ||
+                        line.contains("stack trace") ||
+                        line.contains("error") ||
+                        line.contains("One or more errors occurred");
+
+                boolean isNormalLine =
+                        !isExceptionLine &&
+                        line.length() > 0 &&
+                        (line.contains("%") ||
+                         line.contains("Saving") ||
+                         line.contains("Generating") ||
+                         line.contains("Validating") ||
+                         line.contains("World"));
+
+                // --- 发送输出（无论异常或正常） ---
+                sendSseEvent(line);
+
+                // --- 正常行：说明恢复成功 ---
+                if (isNormalLine) {
+                    lastNormalOutputTime = System.currentTimeMillis();
+                    exceptionDetectedTime = -1; // 清除异常标记
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                sendSseEvent(SseEmitter.event().name("error").data("错误: " + e.getMessage()));
-            } finally {
-                System.out.println("监控任务结束，正在停止整个进程树...");
-                stopProcess(); // 任务完成或出错，主动停止整个进程树
-                if (progressEmitter != null) {
-                    progressEmitter.complete();
+
+                // --- 异常行：开始观察期 ---
+                if (isExceptionLine && exceptionDetectedTime == -1) {
+                    exceptionDetectedTime = System.currentTimeMillis();
+                }
+
+                // --- 异常后长时间无正常输出：视为 tModLoader 卡死 ---
+                if (exceptionDetectedTime != -1 &&
+                    System.currentTimeMillis() - lastNormalOutputTime > EXCEPTION_TIMEOUT) {
+
+                    sendSseEvent("FATAL: 重大错误，tModLoader 已停止输出，正在销毁进程...");
+                    stopProcess();
+                    return;  // 退出监控
+                }
+
+                // 世界生成完成
+                if (line.contains("New World") && line.contains("n")) {
+                    sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
                 }
             }
-        });
+
+        } finally {
+            stopProcess();
+            if (progressEmitter != null) {
+                progressEmitter.complete();
+            }
+        }
+    });
+}
+
+/** 保证 readLine 不会抛异常导致循环退出 */
+private String safeReadLine(BufferedReader reader) {
+    try {
+        return reader.readLine();
+    } catch (IOException e) {
+        sendSseEvent("[IOException] " + e.getMessage());
+        return ""; // 返回空字符串继续循环判断
     }
+}
 
     /**
      * 【关键修复】停止正在运行的进程及其所有子进程。
