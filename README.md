@@ -102,7 +102,6 @@ mod目录:`~/.local/share/Terraria/tModLoader/Mods`
 tmodloader根目录:`~/tmodloader`
 
 
-
 如果您的 tModLoader 安装在其他位置，需要相应调整代码中的路径引用。
 
 ## 使用指南
@@ -111,7 +110,7 @@ tmodloader根目录:`~/tmodloader`
 
 1. 点击左侧导航栏的"创建服务器"
 2. 上传所需的模组文件(.tmod)
-3. 选择或上传世界文件(.wld)
+3. 选择或上传世界文件(.wld和.twld)
 4. 配置服务器设置(最大玩家数、端口、密码等)
 5. 启动服务器
 
