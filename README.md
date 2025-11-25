@@ -22,7 +22,7 @@
 ### 环境要求
 
 - Java 17 或更高版本
-- tModLoader 已安装 ([下载tModLoader](https://github.com/tModLoader/tModLoader))
+- tModLoader 已安装并给予start-tModLoaderServer.sh执行权限([下载tModLoader](https://github.com/tModLoader/tModLoader))
 - tmux 已安装
 
 ### 安装步骤
