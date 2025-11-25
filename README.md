@@ -22,7 +22,7 @@
 ### 环境要求
 
 - Java 17 或更高版本
-- tModLoader 已安装
+- tModLoader 已安装 ([下载tModLoader](https://github.com/tModLoader/tModLoader))
 - tmux 已安装
 
 ### 安装步骤
@@ -95,7 +95,9 @@ tmodloader_board/
 ### 目录
 确保存在以下目录:
 
-mod和存档目录:`~/.local/share/Terraria/tModLoader`（此目录为tmodloader默认目录，只要运行过就会自动创建）
+存档目录:`~/.local/share/Terraria/tModLoader/Worlds`
+
+mod目录:`~/.local/share/Terraria/tModLoader/Mods`
 
 tmodloader根目录:`~/tmodloader`
 
