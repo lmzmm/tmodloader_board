@@ -9,7 +9,6 @@ public class GameConfig {
     private String password;
 
 
-    // getter 和 setter（Lombok的话用 @Data 就行）
     public List<String> getMods() {
         return mods;
     }

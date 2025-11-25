@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 /**
  * 【职责】: 负责启动一个新的 tModLoader 服务器进程。
- * 这个服务就像一个服务器的"工厂"或"启动器"。
+ * 这个服务就像一个服务器的"启动器"。
  */
 @Service
 public class StartService {
@@ -91,7 +91,7 @@ public class StartService {
 
     public void enableMods(List<String> modFilenames, String enabledJsonPath) throws IOException {
 
-    // --- 步骤 1: 将文件名列表转换为内部模组名列表 ---
+    // 将文件名列表转换为内部模组名列表 ---
 
     // 处理 null 输入
     if (modFilenames == null) {
@@ -104,7 +104,6 @@ public class StartService {
 
     System.out.println("处理后，准备写入文件的模组名: " + modNames);
 
-    // --- 步骤 2: 创建并配置 ObjectMapper 以生成美化格式的 JSON ---
 
     ObjectMapper objectMapper = new ObjectMapper();
 

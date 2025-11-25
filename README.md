@@ -13,7 +13,7 @@
 ## 技术栈
 
 - 后端: Java + Spring Boot 3.5.4
-- 前端: HTML5 + CSS3 + JavaScript (原生)
+- 前端: HTML5 + CSS3 + JavaScript 
 - 构建工具: Maven
 - Java 版本: 17
 
@@ -22,14 +22,25 @@
 ### 环境要求
 
 - Java 17 或更高版本
-- Maven 3.6+ (用于构建项目)
 - tModLoader 已安装
+- tmux 已安装
 
 ### 安装步骤
 
+#### 方法一：下载预编译的 JAR 包（推荐）
+
+1. 从 [GitHub 发行版页面](https://github.com/lmzmm/tmodloader_board/releases/tag/1.2) 下载最新版本的 JAR 包
+
+2. 运行应用:
+   ```
+   java -jar tmodloader_board-0.0.1-SNAPSHOT.jar
+   ```
+
+#### 方法二：从源码构建
+
 1. 克隆仓库:
    ```
-   git clone <repository-url>
+   git clone 
    cd tmodloader_board
    ```
 
@@ -40,11 +51,57 @@
 
 3. 运行应用:
    ```
-   java -jar target/tmodloader_board-0.0.1-SNAPSHOT.jar
+   mvn spring-boot:run
    ```
 
 4. 访问应用:
-   打开浏览器并访问 `http://localhost:8080`
+   打开浏览器并访问 `http://localhost:8088`
+
+## 项目目录结构
+
+```
+tmodloader_board/
+├── .mvn/wrapper/               # Maven Wrapper 相关文件
+├── src/                        # 源代码目录
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/tModLoader_Board/
+│   │   │       ├── Controller/     # REST 控制器
+│   │   │       ├── DTO/            # 数据传输对象
+│   │   │       ├── Service/        # 业务逻辑层
+│   │   │       └── TmodloaderBoardApplication.java  # 应用入口
+│   │   └── resources/
+│   │       ├── static/             # 静态资源文件
+│   │       │   ├── css/            # 样式文件
+│   │       │   └── js/             # JavaScript 文件
+│   │       └── application.yml     # 配置文件
+│   └── test/                       # 测试代码
+├── target/                         # 编译输出目录（构建后生成）
+├── pom.xml                         # Maven 项目配置文件
+├── mvnw/mvnw.cmd                   # Maven Wrapper 执行脚本
+└── README.md                       # 项目说明文档
+```
+
+## 配置说明
+
+### 应用配置
+项目的主要配置位于 `src/main/resources/application.yml`:
+- 默认端口: 8088
+
+可以通过以下方式修改端口:
+1. 运行时指定参数: `--server.port=端口号`
+2. 设置环境变量: `SERVER_PORT=端口号`
+
+### 目录
+确保存在以下目录:
+
+mod和存档目录:`~/.local/share/Terraria/tModLoader`（此目录为tmodloader默认目录，只要运行过就会自动创建）
+
+tmodloader安装目录:`~/tmodloader`
+
+
+
+如果您的 tModLoader 安装在其他位置，需要相应调整代码中的路径引用。
 
 ## 使用指南
 
@@ -61,7 +118,7 @@
 1. 点击左侧导航栏的"创建世界"
 2. 选择要启用的模组
 3. 选择世界大小(小、中、大、超级大)
-4. 选择世界模式(普通、专家、大师、旅途)
+4. 选择世界模式(普通、专家、大师、旅程)
 5. 选择腐化类型(腐化之地或猩红之地)
 6. 输入世界名称
 7. 确认设置并开始创建世界
@@ -75,48 +132,5 @@
    - 发送广播消息
    - 管理玩家(踢出/封禁)
 
-## API 接口
-
-### 服务器创建相关
-- `POST /create/uploadmod` - 上传模组文件
-- `POST /create/uploadworld` - 上传世界文件
-- `POST /create/create` - 启动服务器
-- `GET /create/modlist` - 获取模组列表
-- `GET /create/worldlist` - 获取世界列表
-
-### 世界创建相关
-- `POST /create/startworldcreator` - 启动世界创建进程
-- `GET /create/worldprogress-stream` - 获取世界创建进度(SSE)
-- `POST /create/cancelworldcreation` - 取消世界创建
-- `POST /create/worldconfig` - 发送世界配置选项
-
-### 服务器管理相关
-- `POST /manage/stop` - 停止服务器
-- `POST /manage/broadcast` - 发送广播消息
-- `POST /manage/kickOrban` - 踢出或封禁玩家
-- `GET /manage/serverlist` - 获取服务器列表
-- `GET /manage/playerlist` - 获取玩家列表
-
-## 项目结构
-
-```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/tModLoader_Board/
-│   │       ├── Controller/     # REST 控制器
-│   │       ├── DTO/            # 数据传输对象
-│   │       ├── Service/        # 业务逻辑层
-│   │       └── TmodloaderBoardApplication.java  # 应用入口
-│   └── resources/
-│       ├── static/             # 静态资源文件
-│       │   ├── css/            # 样式文件
-│       │   └── js/             # JavaScript 文件
-│       └── application.yml     # 配置文件
-└── test/                       # 测试代码
-```
-
-
-## 贡献
 
 欢迎提交 Issue 和 Pull Request 来改进这个项目。

@@ -39,7 +39,7 @@ public class ServerManager {
         return "OK";
     }
 
-    @PostMapping("/manage/kickOrban)")
+    @PostMapping("/manage/kickOrban")
     public String kickOrban(@RequestBody PlayerManager playerManager) {
         playerService.kickOrBanPlayer(playerManager.getPlayerName(), playerManager.getSessionName(), playerManager.getAction());
         return "OK";

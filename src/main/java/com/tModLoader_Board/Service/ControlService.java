@@ -15,9 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ControlService {
 
-    // ===================================================================================
     // 核心交互方法 (发送命令 & 获取输出)
-    // ===================================================================================
 
     /**
      * 向指定的 tmux 会话发送一条指令。
@@ -48,7 +46,7 @@ public class ControlService {
      * @return               命令的精确输出。如果找不到命令，则返回空字符串。
      */
     public String getTmuxOutput(String commandString, String sessionName, int linesToCapture) throws IOException, InterruptedException {
-        // 步骤 1: 像以前一样，执行 tmux capture-pane 获取原始输出
+        // 执行 tmux capture-pane 获取原始输出
         List<String> command = new ArrayList<>();
         command.add("tmux");
         command.add("capture-pane");
@@ -70,21 +68,17 @@ public class ControlService {
         process.waitFor(5, TimeUnit.SECONDS);
         String rawOutput = rawOutputBuilder.toString();
 
-        // 步骤 2: 将原始输出分割成行数组
+        // 将原始输出分割成行数组
         String[] lines = rawOutput.split(System.lineSeparator());
 
-        // 步骤 3: 从下往上遍历，查找包含命令的行
         int commandLineIndex = -1;
         for (int i = lines.length - 1; i >= 0; i--) {
-            // A simple .contains() is usually robust enough to find the command prompt line.
-            // e.g., it will match "> playing"
             if (lines[i].contains(commandString)) {
                 commandLineIndex = i;
                 break; // 找到最近的一次命令，停止搜索
             }
         }
 
-        // 步骤 4: 如果找到了命令，提取其之后的所有行
         if (commandLineIndex != -1) {
             StringBuilder commandResult = new StringBuilder();
             for (int i = commandLineIndex + 1; i < lines.length; i++) {
@@ -94,13 +88,11 @@ public class ControlService {
             return commandResult.toString().trim();
         }
 
-        // 如果在捕获的行中找不到命令，返回空字符串
+
         return "";
     }
 
-    // ===================================================================================
     // 应用层封装 (获取玩家列表 & 停止服务器)
-    // ===================================================================================
 
     /**
      * 获取指定服务器上的在线玩家列表。
@@ -109,7 +101,7 @@ public class ControlService {
         sendCommand(sessionName, "playing");
         Thread.sleep(500); // 等待服务器响应
         String output = getTmuxOutput("playing", sessionName, 30);
-        // 【重点】调用下面已修改的解析方法
+
         return parsePlayerList(output);
     }
 
@@ -129,9 +121,7 @@ public class ControlService {
         }
     }
 
-    // ===================================================================================
     // 辅助工具方法 (解析 & 状态检查)
-    // ===================================================================================
 
     /**
      * 检查指定的 tmux 会话当前是否正在运行。
@@ -156,8 +146,8 @@ public class ControlService {
         for (String line : lines) {
             String trimmedLine = line.trim();
 
-            // 1. 检查行是否以 ": " 开头。
-            // 2. 检查行是否包含 " ("，这是玩家名和IP地址的分隔符。
+            // 检查行是否以 ": " 开头。
+            // 检查行是否包含 " ("，这是玩家名和IP地址的分隔符。
             if (trimmedLine.startsWith(": ") && trimmedLine.contains(" (")) {
                 try {
                     // 玩家名是从第3个字符(索引为2)开始，直到 " (" 出现之前的位置。
@@ -165,7 +155,6 @@ public class ControlService {
                     String playerName = trimmedLine.substring(2, nameEndIndex);
                     players.add(playerName);
                 } catch (Exception e) {
-                    // 如果解析出现意外，打印错误但程序不中断
                     System.err.println("解析玩家行时出错: " + trimmedLine);
                 }
             }
@@ -191,12 +180,10 @@ public class ControlService {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // tmux ls 的输出格式通常是: "session_name: 1 windows (created ...)"
-                // 我们需要提取冒号 ":" 之前的部分
+                // 需要提取冒号 ":" 之前的部分
                 int colonIndex = line.indexOf(':');
                 if (colonIndex != -1) {
                     String sessionName = line.substring(0, colonIndex);
-                    // 只添加 tmodloader 的会话
                     if (sessionName.startsWith("tmodloader-")) {
                         serverList.add(sessionName);
                     }

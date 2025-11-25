@@ -33,9 +33,7 @@ public class CreateWorld {
     private final Object processLock = new Object();
 
 
-    // -----------------------------------------------------------
     // 启动初始化流程
-    // -----------------------------------------------------------
     public void startConfigurationProcess() throws Exception {
 
         synchronized (processLock) {
@@ -94,9 +92,7 @@ public class CreateWorld {
     }
 
 
-    // -----------------------------------------------------------
     // 安全发送命令
-    // -----------------------------------------------------------
     public void sendCommand(String command) throws IOException {
         synchronized (processLock) {
             if (processWriter == null) {
@@ -111,9 +107,7 @@ public class CreateWorld {
     }
 
 
-    // -----------------------------------------------------------
     // SSE 推送世界创建进度
-    // -----------------------------------------------------------
     public void streamProgress(SseEmitter emitter) {
 
         final Process processToMonitor;
@@ -200,9 +194,7 @@ public class CreateWorld {
     }
 
 
-    // -----------------------------------------------------------
     // 安全读行：避免 reader 在 cleanup 后抛异常
-    // -----------------------------------------------------------
     private String safeReadLine() {
         synchronized (processLock) {
             if (processReader == null) return null;
@@ -216,9 +208,7 @@ public class CreateWorld {
     }
 
 
-    // -----------------------------------------------------------
     // 停止进程树
-    // -----------------------------------------------------------
     public void stopProcess() {
         synchronized (processLock) {
 
