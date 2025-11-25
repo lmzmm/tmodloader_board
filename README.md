@@ -97,7 +97,7 @@ tmodloader_board/
 
 mod和存档目录:`~/.local/share/Terraria/tModLoader`（此目录为tmodloader默认目录，只要运行过就会自动创建）
 
-tmodloader安装目录:`~/tmodloader`
+tmodloader根目录:`~/tmodloader`
 
 
 
