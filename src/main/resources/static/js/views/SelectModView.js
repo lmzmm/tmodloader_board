@@ -27,17 +27,11 @@ const SelectModView = {
       <div id="workflowStatus" class="step-status" style="margin-top: 20px;"></div>
     </div>`,
 
-  /**
-   * 初始化函数：只负责调用渲染函数。
-   */
+
   init: function() {
     this.renderModList();
   },
 
-  /**
-   * 渲染函数：是所有逻辑的中心。
-   * 它负责获取数据、渲染HTML，然后在渲染完成后设置所有相关的JS功能。
-   */
   renderModList: function() {
     const container = document.getElementById('modListContainer');
     const statusEl = document.getElementById('workflowStatus');
@@ -53,7 +47,6 @@ const SelectModView = {
         return response.json();
       })
       .then(mods => {
-        // 1. 准备 HTML
         let listHtml = `<h3><i class="fas fa-boxes"></i> 可用模组</h3><div class="item-list">`;
         const currentConfig = currentWorkflow === 'createServer' ? serverConfig : worldCreatorConfig;
         mods.forEach(mod => {
@@ -70,12 +63,8 @@ const SelectModView = {
             </button>
           </div>`;
 
-        // 2. 将 HTML 插入到 DOM
         container.innerHTML = listHtml;
 
-        // 3. 在 HTML 渲染完成后，才执行依赖这些DOM元素的代码
-
-        // 3a. 设置 Uploader
         setupUploader({
           dropZoneId: 'modDropZone',
           fileInputId: 'modFileInput',
@@ -88,7 +77,6 @@ const SelectModView = {
           onUploadComplete: this.renderModList.bind(this)
         });
 
-        // 3b. 设置 "下一步" 按钮的事件监听器
         const submitBtn = document.getElementById('submitModsBtn');
         submitBtn.addEventListener('click', () => {
           if (submitBtn.disabled) return;
@@ -101,13 +89,12 @@ const SelectModView = {
             loadView(SelectWorldView);
 
           } else if (currentWorkflow === 'createWorld') {
-            worldCreatorConfig.mods = selectedMods; // (可选) 在前端也保存一份
+            worldCreatorConfig.mods = selectedMods;
 
             submitBtn.disabled = true;
             statusEl.style.color = 'var(--text-secondary)';
             statusEl.innerHTML = `<i class="fas fa-cog fa-spin"></i> 正在初始化世界生成器...这可能需要一些时间...`;
 
-            // 构造只包含 mods 的请求数据
             const requestData = {
                 mods: selectedMods
             };
