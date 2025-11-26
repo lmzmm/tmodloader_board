@@ -109,12 +109,10 @@ public class CreateWorld {
 
     // 通过 SSE 推送世界创建进度
     public void streamProgress(SseEmitter emitter) {
-
         final Process processToMonitor;
         synchronized (processLock) {
             if (activeProcess == null || processReader == null) {
-                emitter.completeWithError(
-                        new IllegalStateException("没有正在运行的世界创建进程可监控"));
+                emitter.completeWithError(new IllegalStateException("无运行中的进程"));
                 return;
             }
             processToMonitor = this.activeProcess;
@@ -123,38 +121,43 @@ public class CreateWorld {
         this.progressEmitter = emitter;
 
         executor.execute(() -> {
-            String line;
-
             try {
+                String line;
+                // readLine 为阻塞读取，返回 null 代表流已关闭
+                while (processToMonitor.isAlive() && (line = safeReadLine()) != null) {
 
-                while (processToMonitor.isAlive()
-                        && (line = safeReadLine()) != null) {
-
-                    // 推送进度信息
                     sendSseEvent(line);
 
-                    // 检测创建完成
+                    // 成功判定
                     if (line.contains("n") && line.contains("New World")) {
-                        sendSseEvent(SseEmitter.event()
-                                .name("complete")
-                                .data("世界已成功创建！"));
-                        break;
+                        sendSseEvent(SseEmitter.event().name("complete").data("世界已成功创建！"));
+                        return;
+                    }
+
+                    // 错误判定：匹配行首 ERROR
+                    if (line.trim().toUpperCase().startsWith("ERROR")) {
+                        sendSseEvent(SseEmitter.event().name("error").data(line));
+                        stopProcess();
+                        return;
                     }
                 }
 
-            } catch (Exception e) {
-                sendSseEvent(SseEmitter.event()
-                        .name("error")
-                        .data("错误: " + e.getMessage()));
-                stopProcess();
+                // 退出码检查
+                if (!processToMonitor.isAlive() && processToMonitor.exitValue() != 0) {
+                     sendSseEvent(SseEmitter.event().name("error").data("进程异常退出 Code: " + processToMonitor.exitValue()));
+                }
 
+            } catch (Exception e) {
+                sendSseEvent(SseEmitter.event().name("error").data("流处理异常: " + e.getMessage()));
             } finally {
                 if (progressEmitter != null) {
                     progressEmitter.complete();
+                    stopProcess();
                 }
             }
         });
     }
+
 
 
     // 安全读取一行：避免 reader 在 cleanup 后抛异常

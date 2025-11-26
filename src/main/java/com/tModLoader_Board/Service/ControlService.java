@@ -102,7 +102,7 @@ public class ControlService {
      */
     public void stopServer(String sessionName) throws IOException, InterruptedException {
         if (isSessionRunning(sessionName)) {
-            System.out.println("正在向会话 '" + sessionName + "' 发送 'exit' 命令以关闭服务器...");
+            System.out.println("正在向会话 '" + sessionName + "' 发送 'exit' 命令以关闭服务器");
             sendCommand(sessionName, "exit");
             Thread.sleep(2000);
             if (isSessionRunning(sessionName)) {
@@ -183,7 +183,7 @@ public class ControlService {
 
         // 如果 tmux 命令执行失败，返回空列表
         if (process.exitValue() != 0) {
-            System.err.println("执行 'tmux ls' 失败，可能 tmux 服务未运行。");
+            System.err.println("未找到服务器，可能 tmux 服务未运行");
             return new ArrayList<>();
         }
 
