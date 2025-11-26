@@ -23,7 +23,7 @@ public class CreateWorld {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    // --- 状态变量 ---
+    // 状态变量
     private volatile Process activeProcess;
     private volatile BufferedWriter processWriter;
     private volatile BufferedReader processReader;
@@ -33,11 +33,11 @@ public class CreateWorld {
     private final Object processLock = new Object();
 
 
-    // 启动初始化流程
+    // 启动世界创建流程
     public void startConfigurationProcess() throws Exception {
 
         synchronized (processLock) {
-            // 如果已有进程，提前清理
+            // 如果已有进程在运行，先清理
             if (activeProcess != null && activeProcess.isAlive()) {
                 System.out.println("警告：已有世界创建进程正在运行，正在强制清理...");
                 stopProcess();
@@ -60,7 +60,7 @@ public class CreateWorld {
         }
 
 
-        // 等待进程 ready
+        // 等待进程准备就绪
         CompletableFuture<Void> readyFuture = new CompletableFuture<>();
 
         executor.execute(() -> {
@@ -72,7 +72,7 @@ public class CreateWorld {
                     if (line.contains("n") && line.contains("New World")) {
                         System.out.println("检测到 'New World' 选项，服务器已准备就绪。");
 
-                        // 自动输入 n
+                        // 自动输入 n 开始创建世界
                         sendCommand("n");
                         readyFuture.complete(null);
                         return;
@@ -92,7 +92,7 @@ public class CreateWorld {
     }
 
 
-    // 安全发送命令
+    // 发送命令到进程
     public void sendCommand(String command) throws IOException {
         synchronized (processLock) {
             if (processWriter == null) {
@@ -107,7 +107,7 @@ public class CreateWorld {
     }
 
 
-    // SSE 推送世界创建进度
+    // 通过 SSE 推送世界创建进度
     public void streamProgress(SseEmitter emitter) {
 
         final Process processToMonitor;
@@ -130,10 +130,10 @@ public class CreateWorld {
                 while (processToMonitor.isAlive()
                         && (line = safeReadLine()) != null) {
 
-                    // 进度推送
+                    // 推送进度信息
                     sendSseEvent(line);
 
-                    // 创建完毕
+                    // 检测创建完成
                     if (line.contains("n") && line.contains("New World")) {
                         sendSseEvent(SseEmitter.event()
                                 .name("complete")
@@ -149,7 +149,7 @@ public class CreateWorld {
 
                 System.out.println("出现异常，进入观察期...");
 
-                // ⭐ 启动观察期线程
+                // 启动观察期线程
                 executor.execute(() -> observeProcessAndDecideStop());
 
             } finally {
@@ -161,7 +161,7 @@ public class CreateWorld {
     }
 
 
-     // * 异常后观察一段时间，如果仍然无输出，则停止进程。
+    // 异常后观察一段时间，如果没有输出则停止进程
 
     private void observeProcessAndDecideStop() {
 
@@ -179,7 +179,7 @@ public class CreateWorld {
                 if (line != null && !line.trim().isEmpty()) {
                     System.out.println("无需终止");
                     sendSseEvent(line);
-                    return; // 不终止
+                    return;
                 }
 
                 Thread.sleep(checkInterval);
@@ -187,14 +187,14 @@ public class CreateWorld {
 
         } catch (Exception ignored) {}
 
-        // ⭐ 观察期内没有任何正常输出 → 终止
+        // 终止进程
         System.out.println("观察期内没有新的输出，进程可能无法恢复，执行终止。");
         sendSseEvent("长时间无输出，自动终止世界创建进程");
         stopProcess();
     }
 
 
-    // 安全读行：避免 reader 在 cleanup 后抛异常
+    // 安全读取一行：避免 reader 在 cleanup 后抛异常
     private String safeReadLine() {
         synchronized (processLock) {
             if (processReader == null) return null;
@@ -208,7 +208,7 @@ public class CreateWorld {
     }
 
 
-    // 停止进程树
+    // 停止进程及其子进程
     public void stopProcess() {
         synchronized (processLock) {
 
@@ -243,9 +243,7 @@ public class CreateWorld {
         }
     }
 
-    /**
-     * 安全地发送 SSE 事件。
-     */
+    // 发送 SSE 事件
     private void sendSseEvent(Object data) {
         if (this.progressEmitter != null) {
             try {
