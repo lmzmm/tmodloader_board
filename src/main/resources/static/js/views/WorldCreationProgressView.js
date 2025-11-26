@@ -77,7 +77,7 @@ const WorldCreationProgressView = {
         taskBar.style.width = '100%';
         progressWrapper.style.display = 'none'; // 隐藏整个进度条区域
 
-        completionText.innerHTML = `✅ 世界创建成功！<br>"${event.data}"`;
+        completionText.innerHTML = `✅ 完成！<br>"${event.data}"`;
         completionMessage.style.display = 'flex'; // 显示完成信息
         eventSource.close();
     });

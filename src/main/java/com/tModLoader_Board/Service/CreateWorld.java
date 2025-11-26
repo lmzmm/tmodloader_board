@@ -80,7 +80,7 @@ public class CreateWorld {
                 }
 
                 readyFuture.completeExceptionally(
-                        new IOException("未检测到 'New World' 文本，进程提前结束"));
+                        new IOException("未检测到 'New World'，进程提前结束"));
 
             } catch (Exception e) {
                 readyFuture.completeExceptionally(e);
@@ -123,9 +123,9 @@ public class CreateWorld {
         this.progressEmitter = emitter;
 
         executor.execute(() -> {
+            String line;
 
             try {
-                String line;
 
                 while (processToMonitor.isAlive()
                         && (line = safeReadLine()) != null) {
@@ -146,11 +146,7 @@ public class CreateWorld {
                 sendSseEvent(SseEmitter.event()
                         .name("error")
                         .data("错误: " + e.getMessage()));
-
-                System.out.println("出现异常，进入观察期...");
-
-                // 启动观察期线程
-                executor.execute(() -> observeProcessAndDecideStop());
+                stopProcess();
 
             } finally {
                 if (progressEmitter != null) {
@@ -158,39 +154,6 @@ public class CreateWorld {
                 }
             }
         });
-    }
-
-
-    // 异常后观察一段时间，如果没有输出则停止进程
-
-    private void observeProcessAndDecideStop() {
-
-        System.out.println("发现异常：检测进程是否正常运行...");
-
-        long start = System.currentTimeMillis();
-        final long observeMillis = 5000;   // 观察期 5 秒
-        final long checkInterval = 200;    // 每 200ms 检查一次
-
-        try {
-            while (System.currentTimeMillis() - start < observeMillis) {
-
-                String line = safeReadLine();
-
-                if (line != null && !line.trim().isEmpty()) {
-                    System.out.println("无需终止");
-                    sendSseEvent(line);
-                    return;
-                }
-
-                Thread.sleep(checkInterval);
-            }
-
-        } catch (Exception ignored) {}
-
-        // 终止进程
-        System.out.println("观察期内没有新的输出，进程可能无法恢复，执行终止。");
-        sendSseEvent("长时间无输出，自动终止世界创建进程");
-        stopProcess();
     }
 
 
