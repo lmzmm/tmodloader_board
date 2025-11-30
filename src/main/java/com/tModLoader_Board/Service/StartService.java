@@ -2,6 +2,7 @@ package com.tModLoader_Board.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.tModLoader_Board.config.TmodloaderPathConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,15 +13,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * 【职责】: 负责启动一个新的 tModLoader 服务器进程。
- * 这个服务就像一个服务器的"启动器"。
- */
 @Service
 public class StartService {
 
     @Autowired
     private ControlService controlService;
+    @Autowired
+    private TmodloaderPathConfig pathConfig;
 
     /**
      * 启动 tModLoader 服务器。
@@ -35,17 +34,14 @@ public class StartService {
         String os = System.getProperty("os.name").toLowerCase();
 
         if (os.contains("win")) {
-            // Windows 平台的逻辑
+            // Windows 平台（已弃用）
             List<String> command = new ArrayList<>();
             command.add("cmd");
             command.add("/c");
             command.add("F:\\steam\\steamapps\\common\\tModLoader\\start-tModLoaderServer.bat");
-            // ... 添加其他参数 ...
             new ProcessBuilder(command).inheritIO().start();
-            return "windows-server"; // 返回一个静态标识符
-        } else {
-            // --- Linux 平台的启动逻辑 ---
-
+            return "windows-server";
+        } else {//Linux
             // 根据世界名生成一个唯一的会话名。
             String sessionName = "tmodloader-" + world.substring(0, world.length() - 4).replaceAll("[^a-zA-Z0-9_.-]", "");
 
@@ -56,16 +52,15 @@ public class StartService {
             }
 
             List<String> command = new ArrayList<>();
-            String tmodloaderPath = System.getProperty("user.home");
             command.add("tmux");
             command.add("new-session");
             command.add("-d");
             command.add("-s");
             command.add(sessionName);
-            command.add(tmodloaderPath + "/tmodloader/start-tModLoaderServer.sh");
+            command.add(pathConfig.getServerPath());
             command.add("-nosteam");
             command.add("-world");
-            command.add(tmodloaderPath + "/.local/share/Terraria/tModLoader/Worlds/" + world);
+            command.add(pathConfig.getWorlds()+ world);
             command.add("-maxplayers");
             command.add(maxPlayers);
             command.add("-port");
@@ -80,7 +75,6 @@ public class StartService {
 
             if (finished && process.exitValue() == 0) {
                 System.out.println("服务器已在 tmux 会话 '" + sessionName + "' 中成功启动。");
-                // 【重点】成功后返回会话名，调用者可以保存这个名字，并用它来操作 ControlService。
                 return sessionName;
             } else {
                 System.err.println("启动 tmux 会话失败！");
@@ -91,7 +85,7 @@ public class StartService {
 
     public void enableMods(List<String> modFilenames, String enabledJsonPath) throws IOException {
 
-    // 将文件名列表转换为内部模组名列表 ---
+    // 将文件名列表转换为内部模组名列表
 
     // 处理 null 输入
     if (modFilenames == null) {
@@ -102,12 +96,10 @@ public class StartService {
             .map(filename -> filename.replaceAll("\\.tmod$", ""))
             .collect(Collectors.toList());
 
-    System.out.println("处理后，准备写入文件的模组名: " + modNames);
+    System.out.println("准备写入文件的模组名: " + modNames);
 
 
     ObjectMapper objectMapper = new ObjectMapper();
-
-    // 开启 INDENT_OUTPUT 功能，它会自动添加换行和缩进，生成您要的格式。
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
     File modsConfigFile = new File(enabledJsonPath);
@@ -120,18 +112,12 @@ public class StartService {
         }
     }
 
-    // --- 步骤 3: 将处理后的模组名列表写入文件 ---
-    // objectMapper 会自动生成如下格式：
-    // [
-    //   "CalamityMod",
-    //   "BossChecklist",
-    //   "CalamityModMusic"
-    // ]
+    // 生成 enabled.json 文件
     try {
         objectMapper.writeValue(modsConfigFile, modNames);
         System.out.println("成功将 " + modNames.size() + " 个模组名以写入到 " + enabledJsonPath);
     } catch (IOException e) {
-        System.err.println("写入 enabled.json 文件时发生严重错误: " + e.getMessage());
+        System.err.println("写入 enabled.json 文件时发生错误: " + e.getMessage());
         throw e;
     }
     }

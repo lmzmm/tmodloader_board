@@ -1,5 +1,6 @@
 package com.tModLoader_Board.Service;
 
+import com.tModLoader_Board.config.TmodloaderPathConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -18,8 +19,12 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CreateWorld {
 
-    private final String serverPath =
-            System.getProperty("user.home") + "/tmodloader/start-tModLoaderServer.sh";
+    private final String serverPath;
+
+    public CreateWorld(TmodloaderPathConfig pathConfig){
+        this.serverPath = pathConfig.getServerPath();
+    }
+
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -157,7 +162,6 @@ public class CreateWorld {
             }
         });
     }
-
 
 
     // 安全读取一行：避免 reader 在 cleanup 后抛异常
