@@ -51,6 +51,7 @@ public class CreateWorld {
             System.out.println("正在启动世界创建配置流程...");
 
             List<String> command = new ArrayList<>();
+            command.add("bash");
             command.add(serverPath);
             command.add("-nosteam");
 

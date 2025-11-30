@@ -56,6 +56,7 @@ public class StartService {
             command.add("new-session");
             command.add("-d");
             command.add("-s");
+            command.add("bash");
             command.add(sessionName);
             command.add(pathConfig.getServerPath());
             command.add("-nosteam");
