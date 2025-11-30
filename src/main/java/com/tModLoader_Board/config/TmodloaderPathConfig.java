@@ -1,6 +1,7 @@
 package com.tModLoader_Board.config;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.Objects;
 
 @Component
@@ -24,6 +25,19 @@ public class TmodloaderPathConfig {
         }
         else {
             this.serverPath = userHome + "/tmodloader/start-tModLoaderServer.sh";
+        }
+    }
+
+    private void ensureExecutable(String path) {
+        File file = new File(path);
+        if (!file.canExecute()) {
+            boolean success = file.setExecutable(true);
+            if (success) {
+                System.out.println("已设置 " + path + " 为可执行文件");
+            }
+            else {
+                System.out.println("无法设置 " + path + " 为可执行文件");
+            }
         }
     }
 

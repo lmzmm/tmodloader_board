@@ -150,7 +150,7 @@ public class CreateWorld {
 
                 // 退出码检查
                 if (!processToMonitor.isAlive() && processToMonitor.exitValue() != 0) {
-                     sendSseEvent(SseEmitter.event().name("error").data("进程异常退出 Code: " + processToMonitor.exitValue()));
+                     sendSseEvent(SseEmitter.event().name("error").data("进程异常退出: 请检查模组兼容性"));
                 }
 
             } catch (Exception e) {
