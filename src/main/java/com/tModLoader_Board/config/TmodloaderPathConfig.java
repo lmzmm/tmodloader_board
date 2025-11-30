@@ -26,6 +26,8 @@ public class TmodloaderPathConfig {
         else {
             this.serverPath = userHome + "/tmodloader/start-tModLoaderServer.sh";
         }
+
+        ensureExecutable(serverPath);
     }
 
     private void ensureExecutable(String path) {
