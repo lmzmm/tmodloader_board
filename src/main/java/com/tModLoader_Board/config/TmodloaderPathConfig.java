@@ -17,8 +17,8 @@ public class TmodloaderPathConfig {
         String tmlPath = System.getenv("TML_PATH");
 
         savePath = Objects.requireNonNullElseGet(savePath, () -> userHome + "/.local/share/Terraria/tModLoader/");
-        this.mods = savePath + "Mods/";
-        this.worlds = savePath + "Worlds/";
+        this.mods = savePath + "/" + "Mods/";
+        this.worlds = savePath +"/" + "Worlds/";
 
         if (tmlPath != null) {
             this.serverPath = tmlPath + "/start-tModLoaderServer.sh";
