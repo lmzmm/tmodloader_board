@@ -9,15 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 与正在运行的 tModLoader 服务器 tmux 会话进行交互的服务。
- */
 @Service
 public class ControlService {
 
-    /**
-     * 向指定的 tmux 会话发送命令。
-     */
     public void sendCommand(String sessionName, String commandString) throws IOException, InterruptedException {
         List<String> command = new ArrayList<>();
         command.add("tmux");
@@ -31,15 +25,6 @@ public class ControlService {
         p.waitFor(5, TimeUnit.SECONDS);
     }
 
-    /**
-     * 从 tmux 会话中获取指定命令的输出。
-     * 会查找包含 commandString 的行，并返回该行之后的内容。
-     *
-     * @param commandString  发送的命令（如 "playing"）
-     * @param sessionName    tmux 会话名
-     * @param linesToCapture 要获取的行数
-     * @return               命令的输出结果
-     */
     public String getTmuxOutput(String commandString, String sessionName, int linesToCapture) throws IOException, InterruptedException {
         // 执行 tmux capture-pane 获取原始输出
         List<String> command = new ArrayList<>();
@@ -86,9 +71,6 @@ public class ControlService {
         return "";
     }
 
-    /**
-     * 获取指定服务器上的在线玩家列表。
-     */
     public List<String> getPlayersOnline(String sessionName) throws IOException, InterruptedException {
         sendCommand(sessionName, "playing");
         Thread.sleep(500); // 等待服务器响应
@@ -97,9 +79,6 @@ public class ControlService {
         return parsePlayerList(output);
     }
 
-    /**
-     * 停止服务器。
-     */
     public void stopServer(String sessionName) throws IOException, InterruptedException {
         if (isSessionRunning(sessionName)) {
             System.out.println("正在向会话 '" + sessionName + "' 发送 'exit' 命令以关闭服务器");
@@ -113,21 +92,12 @@ public class ControlService {
         }
     }
 
-    /**
-     * 检查指定的 tmux 会话是否正在运行。
-     */
     public boolean isSessionRunning(String sessionName) throws IOException, InterruptedException {
         Process process = new ProcessBuilder("tmux", "has-session", "-t", sessionName).start();
         process.waitFor(5, TimeUnit.SECONDS);
         return process.exitValue() == 0;
     }
 
-    /**
-     * 从 tModLoader 的原始输出中解析出玩家列表。
-     *
-     * @param rawOutput 从 tmux 抓取的原始文本
-     * @return 解析后的玩家名列表
-     */
     private List<String> parsePlayerList(String rawOutput) {
         List<String> players = new ArrayList<>();
         String[] lines = rawOutput.split(System.lineSeparator());
@@ -151,11 +121,6 @@ public class ControlService {
         return players;
     }
 
-    /**
-     * 获取所有正在运行的 tModLoader 服务器 tmux 会话列表。
-     *
-     * @return 包含所有 tModLoader 会话名称的列表
-     */
     public List<String> getServerList() throws IOException, InterruptedException {
         List<String> serverList = new ArrayList<>();
         List<String> command = new ArrayList<>();

@@ -43,7 +43,7 @@ public class StartService {
             return "windows-server";
         } else {//Linux
             // 根据世界名生成一个唯一的会话名。
-            String sessionName = "tmodloader-" + world.substring(0, world.length() - 4).replaceAll("[^a-zA-Z0-9_.-]", "");
+            String sessionName = "tmodloader-" + world.substring(0, world.length() - 4);
 
             // 调用 ControlService 来检查会话是否已存在。
             if (controlService.isSessionRunning(sessionName)) {
@@ -59,8 +59,10 @@ public class StartService {
             command.add(sessionName);
             command.add(pathConfig.getServerPath());
             command.add("-nosteam");
+            command.add("-modpath");
+            command.add(pathConfig.getModsPath());
             command.add("-world");
-            command.add(pathConfig.getWorlds()+ world);
+            command.add(pathConfig.getWorldsPath()+ world);
             command.add("-maxplayers");
             command.add(maxPlayers);
             command.add("-port");
@@ -85,40 +87,32 @@ public class StartService {
 
     public void enableMods(List<String> modFilenames, String enabledJsonPath) throws IOException {
 
-    // 将文件名列表转换为内部模组名列表
+        // 将文件名列表转换为内部模组名列表
 
-    // 处理 null 输入
-    if (modFilenames == null) {
-        modFilenames = new ArrayList<>();
-    }
-
-    List<String> modNames = modFilenames.stream()
-            .map(filename -> filename.replaceAll("\\.tmod$", ""))
-            .collect(Collectors.toList());
-
-    System.out.println("准备写入文件的模组名: " + modNames);
-
-
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-    File modsConfigFile = new File(enabledJsonPath);
-
-    // 确保父目录存在
-    File parentDir = modsConfigFile.getParentFile();
-    if (parentDir != null && !parentDir.exists()) {
-        if (!parentDir.mkdirs()) {
-            throw new IOException("无法创建模组配置目录: " + parentDir.getAbsolutePath());
+        // 处理 null 输入
+        if (modFilenames == null) {
+            modFilenames = new ArrayList<>();
         }
-    }
 
-    // 生成 enabled.json 文件
-    try {
-        objectMapper.writeValue(modsConfigFile, modNames);
-        System.out.println("成功将 " + modNames.size() + " 个模组名以写入到 " + enabledJsonPath);
-    } catch (IOException e) {
-        System.err.println("写入 enabled.json 文件时发生错误: " + e.getMessage());
-        throw e;
-    }
+        List<String> modNames = modFilenames.stream()
+                .map(filename -> filename.replaceAll("\\.tmod$", ""))
+                .collect(Collectors.toList());
+
+        System.out.println("准备写入文件的模组名: " + modNames);
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        File modsConfigFile = new File(enabledJsonPath);
+
+        // 生成 enabled.json 文件
+        try {
+            objectMapper.writeValue(modsConfigFile, modNames);
+            System.out.println("成功将 " + modNames.size() + " 个模组名以写入到 " + enabledJsonPath);
+        } catch (IOException e) {
+            System.err.println("写入 enabled.json 文件时发生错误: " + e.getMessage());
+            throw e;
+        }
     }
 }

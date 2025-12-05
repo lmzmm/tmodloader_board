@@ -39,7 +39,7 @@ public class CreateWorld {
 
 
     // 启动世界创建流程
-    public void startConfigurationProcess() throws Exception {
+    public void startConfigurationProcess(String modsPath) throws Exception {
 
         synchronized (processLock) {
             // 如果已有进程在运行，先清理
@@ -53,6 +53,8 @@ public class CreateWorld {
             List<String> command = new ArrayList<>();
             command.add(serverPath);
             command.add("-nosteam");
+            command.add("-modpath");
+            command.add(modsPath);
 
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);

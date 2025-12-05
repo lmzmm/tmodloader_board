@@ -3,130 +3,227 @@ const SelectModView = {
     <div class="card">
       <h2><i class="fas fa-puzzle-piece"></i> 选择模组</h2>
       <p>为您的新服务器或新世界选择需要的模组。</p>
+      
       <div class="content-wrapper">
-        <div class="selection-area">
-          <div id="modListContainer">正在加载模组列表...</div>
-        </div>
-        <div id="modUploadArea" class="upload-area">
-          <h3><i class="fas fa-upload"></i> 上传模组文件</h3>
-          <div id="modDropZone" class="drop-zone">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <p>拖动文件到此处，或点击选择</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">支持 .tmod 文件</p>
+        <div class="selection-area" style="width: 100%;">
+          <div id="modListContainer" style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
+            正在加载模组列表...
           </div>
-          <input type="file" id="modFileInput" multiple style="display: none;">
-          <h4><i class="fas fa-list"></i> 待上传列表：</h4>
-          <div id="modFileList" class="file-list-container"></div>
-          <div id="modUploadStatus"></div>
-          <br>
-          <button id="uploadAllModsBtn" style="width: 100%;">
-            <i class="fas fa-arrow-up"></i> 开始上传
-          </button>
         </div>
       </div>
-      <div id="workflowStatus" class="step-status" style="margin-top: 20px;"></div>
-    </div>`,
 
+      <div style="margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="togglePackageListBtn">
+            <h3 style="margin: 0; font-size: 1.1em; color: #495057;"><i class="fas fa-layer-group"></i>使用整合包</h3>
+            <i class="fas fa-chevron-down" id="packageToggleIcon"></i>
+        </div>
+        
+        <div id="packageListSection" style="display: none; margin-top: 15px; padding-top: 10px; border-top: 1px solid #dee2e6;">
+          <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">注意：选择整合包将覆盖上方手动勾选的模组。</p>
+          <div id="packageListContainer">正在加载整合包列表...</div>
+        </div>
+      </div>
+
+      <button id="submitModsBtn" style="width: 100%; padding: 12px; font-size: 1.1em; background-color: #4361ee; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        <i class="fas fa-arrow-right"></i> 使用选中模组并下一步
+      </button>
+
+      <div id="workflowStatus" class="step-status" style="margin-top: 15px;"></div>
+    </div>`,
 
   init: function() {
     this.renderModList();
+    this.renderPackageList();
+
+    document.getElementById('togglePackageListBtn').addEventListener('click', function() {
+      const section = document.getElementById('packageListSection');
+      const icon = document.getElementById('packageToggleIcon');
+
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+      } else {
+        section.style.display = 'none';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+      }
+    });
+
+    document.getElementById('submitModsBtn').addEventListener('click', () => {
+        const btn = document.getElementById('submitModsBtn');
+        if (btn.disabled) return;
+
+        const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
+        const statusEl = document.getElementById('workflowStatus');
+
+        const requestData = {
+            packaged: false,
+            mods: selectedMods,
+            packageName: null
+        };
+
+        this.submitConfiguration(requestData, statusEl);
+    });
+  },
+
+  renderPackageList: function() {
+    const container = document.getElementById('packageListContainer');
+    fetch('/resource/packagelist?t=' + Date.now())
+      .then(response => response.json())
+      .then(packages => {
+        if (!packages || packages.length === 0) {
+          container.innerHTML = '<p style="color:#888;">暂无整合包，请在【模组管理】中创建。</p>';
+          return;
+        }
+
+        let listHtml = `<div class="item-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:10px;">`;
+        packages.forEach(pkg => {
+          const displayName = pkg.replace(/\.json$/, '');
+          listHtml += `
+            <label style="background:#fff; padding:10px; border:1px solid #ced4da; border-radius:4px; cursor:pointer; display:flex; align-items:center;">
+                <input type="radio" name="package" value="${pkg}" style="margin-right:10px;"> 
+                <span style="overflow:hidden; text-overflow:ellipsis;">${displayName}</span>
+            </label>`;
+        });
+
+        listHtml += `</div>
+          <button id="usePackageBtn" style="width: 100%; margin-top:15px; padding:8px; background-color: #2a9d8f; color:white; border:none; border-radius:4px; cursor:pointer;">
+            <i class="fas fa-check"></i> 使用此整合包并下一步
+          </button>`;
+
+        container.innerHTML = listHtml;
+
+        document.getElementById('usePackageBtn').addEventListener('click', () => {
+          const selectedPackage = document.querySelector('input[name="package"]:checked');
+          if (!selectedPackage) {
+            alert('请先选择一个整合包！');
+            return;
+          }
+
+          const packageName = selectedPackage.value;
+          const statusEl = document.getElementById('workflowStatus');
+
+          const requestData = {
+              packaged: true,
+              mods: [],
+              packageName: packageName
+          };
+
+          this.submitConfiguration(requestData, statusEl);
+        });
+      })
+      .catch(err => {
+        container.innerHTML = '<p style="color:red;">加载整合包列表失败。</p>';
+      });
   },
 
   renderModList: function() {
     const container = document.getElementById('modListContainer');
-    const statusEl = document.getElementById('workflowStatus');
+    container.innerHTML = '<p style="text-align:center; color:#888;"><i class="fas fa-spinner fa-spin"></i> 正在刷新模组列表...</p>';
 
-    container.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> 正在刷新模组列表...</p>';
-    if (statusEl) {
-        statusEl.innerHTML = '';
-    }
-
-    fetch('/create/modlist')
-      .then(response => {
-        if (!response.ok) return ['高清修复', '小地图', '物品整理', '血量显示'];
-        return response.json();
-      })
+    fetch('/resource/modlist?t=' + Date.now())
+      .then(response => response.json())
       .then(mods => {
-        let listHtml = `<h3><i class="fas fa-boxes"></i> 可用模组</h3><div class="item-list">`;
         const currentConfig = currentWorkflow === 'createServer' ? serverConfig : worldCreatorConfig;
+
+        if (!mods || mods.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#888;">暂无可用模组。</p>`;
+            return;
+        }
+
+        let listHtml = `<div class="item-list">`;
         mods.forEach(mod => {
           const isChecked = currentConfig.mods && currentConfig.mods.includes(mod) ? 'checked' : '';
-          listHtml += `<label><input type="checkbox" name="mod" value="${mod}" ${isChecked}> ${mod}</label>`;
+          listHtml += `
+            <label style="display:block; padding:8px 0; border-bottom:1px solid #f1f1f1; cursor:pointer;">
+                <input type="checkbox" name="mod" value="${mod}" ${isChecked} style="margin-right:10px;"> 
+                ${mod}
+            </label>`;
         });
-        listHtml += `</div><br>
-          <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <button id="submitModsBtn" style="flex: 1; min-width: 200px;">
-              <i class="fas fa-arrow-right"></i> 下一步
-            </button>
-            <button id="showModUploaderBtn" style="flex: 1; min-width: 200px;">
-              <i class="fas fa-upload"></i> 上传新模组
-            </button>
-          </div>`;
-
+        listHtml += `</div>`;
         container.innerHTML = listHtml;
+      })
+      .catch(err => {
+        container.innerHTML = `<p style="color: #e63946;">加载模组列表失败: ${err.message}</p>`;
+      });
+  },
 
-        setupUploader({
-          dropZoneId: 'modDropZone',
-          fileInputId: 'modFileInput',
-          fileListId: 'modFileList',
-          uploadBtnId: 'uploadAllModsBtn',
-          showUploaderBtnId: 'showModUploaderBtn',
-          uploaderAreaId: 'modUploadArea',
-          uploadEndpoint: '/create/uploadmod',
-          statusContainerId: 'modUploadStatus',
-          onUploadComplete: this.renderModList.bind(this)
-        });
+  submitConfiguration: async function(requestData, statusEl) {
+      if (currentWorkflow === 'createServer') {
+          serverConfig.packaged = requestData.packaged;
+          serverConfig.mods = requestData.mods;
+          serverConfig.packageName = requestData.packageName;
 
-        const submitBtn = document.getElementById('submitModsBtn');
-        submitBtn.addEventListener('click', () => {
-          if (submitBtn.disabled) return;
+          if (requestData.packaged && requestData.packageName) {
+              statusEl.style.color = '#666';
+              statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在应用整合包...';
 
-          const selectedMods = Array.from(document.querySelectorAll('input[name="mod"]:checked')).map(cb => cb.value);
+              try {
+                  const pkgResponse = await fetch('/resource/usepackage', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'text/plain' },
+                      body: requestData.packageName
+                  });
 
-          if (currentWorkflow === 'createServer') {
-            serverConfig.mods = selectedMods;
-            alert(`模组选择成功! 已选: ${serverConfig.mods.join(', ') || '无'}`);
-            loadView(SelectWorldView);
+                  if (!pkgResponse.ok) {
+                      const errText = await pkgResponse.text();
+                      throw new Error("应用整合包失败: " + errText);
+                  }
+              } catch (err) {
+                  console.error(err);
+                  statusEl.style.color = '#e63946';
+                  statusEl.innerHTML = `❌ 应用整合包失败: ${err.message}`;
+                  return;
+              }
+          }
 
-          } else if (currentWorkflow === 'createWorld') {
-            worldCreatorConfig.mods = selectedMods;
+          loadView(SelectWorldView);
+          return;
+      }
 
-            submitBtn.disabled = true;
-            statusEl.style.color = 'var(--text-secondary)';
-            statusEl.innerHTML = `<i class="fas fa-cog fa-spin"></i> 正在初始化世界生成器...这可能需要一些时间...`;
+      if (currentWorkflow === 'createWorld') {
+        try {
+            worldCreatorConfig.mods = requestData.mods;
+            statusEl.style.color = '#666';
 
-            const requestData = {
-                mods: selectedMods
-            };
+            if (requestData.packaged && requestData.packageName) {
+                statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 正在应用整合包...`;
 
-            fetch('/create/startworldcreator', {
+                const pkgResponse = await fetch('/resource/usepackage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: requestData.packageName
+                });
+
+                if (!pkgResponse.ok) {
+                    const errText = await pkgResponse.text();
+                    throw new Error("应用整合包失败: " + errText);
+                }
+            }
+
+            statusEl.innerHTML = `<i class="fas fa-cog fa-spin"></i> 正在初始化世界生成器...`;
+
+            const startResponse = await fetch('/create/startworldcreator', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)
-            })
-              .then(res => {
-                if (!res.ok) {
-                  return res.text().then(text => { throw new Error(text || '启动失败'); });
-                }
-                return res.text();
-              })
-              .then(text => {
-                console.log("服务器已准备好:", text);
-                statusEl.style.color = 'var(--success-color)';
-                statusEl.innerHTML = `✅ 初始化成功！正在进入配置页面...`;
-                setTimeout(() => { loadView(SelectWorldSizeView); }, 500);
-              })
-              .catch(err => {
-                console.error("初始化出错:", err);
-                statusEl.style.color = 'var(--danger-color)';
-                statusEl.innerHTML = `❌ 初始化失败: ${err.message}`;
-                submitBtn.disabled = false;
-              });
-          }
-        });
-      })
-      .catch(err => {
-        container.innerHTML = '<p style="color: var(--danger-color);"><i class="fas fa-exclamation-circle"></i> 加载模组列表失败: ' + err.message + '</p>';
-      });
+            });
+
+            if (!startResponse.ok) {
+                const errText = await startResponse.text();
+                throw new Error(errText);
+            }
+
+            statusEl.style.color = '#2a9d8f';
+            statusEl.innerHTML = `✅ 初始化成功！正在进入配置页面...`;
+            setTimeout(() => { loadView(SelectWorldSizeView); }, 500);
+
+        } catch (err) {
+            console.error(err);
+            statusEl.style.color = '#e63946';
+            statusEl.innerHTML = `❌ 操作失败: ${err.message}`;
+        }
+      }
   }
 };

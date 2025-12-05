@@ -7,10 +7,11 @@ import java.util.Objects;
 @Component
 public class TmodloaderPathConfig {
 
-    private String userHome = System.getProperty("user.home");
-    private String mods;
-    private String worlds;
-    private String serverPath;
+    final String userHome = System.getProperty("user.home");
+    final String modsPath;
+    final String worldsPath;
+    final String packagesPath;
+    final String serverPath;
 
     public TmodloaderPathConfig(){
         String savePath = System.getenv("SAVE_PATH");
@@ -21,8 +22,9 @@ public class TmodloaderPathConfig {
         if (!savePath.endsWith("/")) {
             savePath += "/";
         }
-        this.mods = savePath + "Mods/";
-        this.worlds = savePath + "Worlds/";
+        this.modsPath = savePath + "Mods/";
+        this.worldsPath = savePath + "Worlds/";
+        this.packagesPath = savePath + "Packages/";
 
         if (tmlPath != null) {
             if (!tmlPath.endsWith("/")) {
@@ -34,9 +36,10 @@ public class TmodloaderPathConfig {
             this.serverPath = userHome + "/tmodloader/start-tModLoaderServer.sh";
         }
 
-        // 创建目录, 如果不存在, 则创建
-        new File(mods).mkdirs();
-        new File(worlds).mkdirs();
+        // 创建目录
+        new File(modsPath).mkdirs();
+        new File(worldsPath).mkdirs();
+        new File(packagesPath).mkdirs();
 
         ensureExecutable(serverPath);
     }
@@ -54,12 +57,16 @@ public class TmodloaderPathConfig {
         }
     }
 
-    public String getMods() {
-        return mods;
+    public String getModsPath() {
+        return modsPath;
     }
 
-    public String getWorlds() {
-        return worlds;
+    public String getWorldsPath() {
+        return worldsPath;
+    }
+
+    public String getPackagesPath() {
+        return packagesPath;
     }
 
     public String getServerPath() {

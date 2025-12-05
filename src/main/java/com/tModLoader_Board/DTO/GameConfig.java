@@ -7,6 +7,8 @@ public class GameConfig {
     private String maxPlayers;
     private String port;
     private String password;
+    private String packageName;
+    private boolean packaged;
 
 
     public List<String> getMods() {
@@ -47,6 +49,14 @@ public class GameConfig {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isPackaged() {
+        return packaged;
+    }
+
+    public void setPackaged(boolean isPackage) {
+        this.packaged = isPackage;
     }
 
 }

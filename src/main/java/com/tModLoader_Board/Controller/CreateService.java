@@ -2,48 +2,29 @@ package com.tModLoader_Board.Controller;
 
 import com.tModLoader_Board.DTO.GameConfig;
 import com.tModLoader_Board.Service.CreateWorld;
-import com.tModLoader_Board.Service.FileService;
 import com.tModLoader_Board.Service.StartService;
 import com.tModLoader_Board.config.TmodloaderPathConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.List;
 
 
 @RestController
 public class CreateService {
 
-    private final FileService fileService;
     private final StartService startService;
     private final CreateWorld createWorld;
     private final String modPath;
-    private final String worldPath;
 
-    public CreateService(FileService fileService, StartService startService, CreateWorld createWorld, TmodloaderPathConfig pathConfig) {
-        this.fileService = fileService;
+    public CreateService(StartService startService, CreateWorld createWorld, TmodloaderPathConfig pathConfig) {
         this.startService = startService;
         this.createWorld = createWorld;
 
-        this.modPath = pathConfig.getMods();
-        this.worldPath = pathConfig.getWorlds();
-    }
-
-    @PostMapping("/create/uploadmod")
-    public String upload(MultipartFile file) {
-        fileService.save_file(file, modPath);
-        return "OK";
-    }
-
-    @PostMapping("/create/uploadworld")
-    public String uploadworld(MultipartFile file) {
-        fileService.save_file(file, worldPath);
-        return "OK";
+        this.modPath = pathConfig.getModsPath();
     }
 
     @PostMapping("/create/create")
@@ -51,7 +32,9 @@ public class CreateService {
         System.out.println(config.getWorld());
         try {
             System.out.println(config.getMods());
-            startService.enableMods(config.getMods(), modPath + "enabled.json");
+            if (!config.isPackaged()) {
+                startService.enableMods(config.getMods(), modPath + "enabled.json");
+            }
             startService.startServer(config.getWorld(), config.getMaxPlayers(), config.getPort(), config.getPassword());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -67,8 +50,10 @@ public class CreateService {
     @PostMapping("/create/startworldcreator")
     public String startWorldCreatorProcess(@RequestBody GameConfig config) {
         try {
-            startService.enableMods(config.getMods(), modPath + "enabled.json");
-            createWorld.startConfigurationProcess();
+            if (!config.isPackaged()) {
+                startService.enableMods(config.getMods(), modPath + "enabled.json");
+            }
+            createWorld.startConfigurationProcess(modPath);
             return "OK";
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "无法启动服务器进程", e);
@@ -107,15 +92,4 @@ public class CreateService {
         return "OK";
     }
 
-    @GetMapping("/create/modlist")
-    public List<String> modlist() {
-        String filename = ".tmod";
-        return fileService.getfilelist(modPath, filename);
-    }
-
-    @GetMapping("/create/worldlist")
-    public List<String> worldlist() {
-        String filename = ".wld";
-        return fileService.getfilelist(worldPath, filename);
-    }
 }
