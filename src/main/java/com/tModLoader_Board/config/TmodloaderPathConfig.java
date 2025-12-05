@@ -17,15 +17,26 @@ public class TmodloaderPathConfig {
         String tmlPath = System.getenv("TML_PATH");
 
         savePath = Objects.requireNonNullElseGet(savePath, () -> userHome + "/.local/share/Terraria/tModLoader/");
-        this.mods = savePath + "/" + "Mods/";
-        this.worlds = savePath +"/" + "Worlds/";
+        // 确保路径以 / 结尾
+        if (!savePath.endsWith("/")) {
+            savePath += "/";
+        }
+        this.mods = savePath + "Mods/";
+        this.worlds = savePath + "Worlds/";
 
         if (tmlPath != null) {
-            this.serverPath = tmlPath + "/start-tModLoaderServer.sh";
+            if (!tmlPath.endsWith("/")) {
+                tmlPath += "/";
+            }
+            this.serverPath = tmlPath + "start-tModLoaderServer.sh";
         }
         else {
             this.serverPath = userHome + "/tmodloader/start-tModLoaderServer.sh";
         }
+
+        // 创建目录, 如果不存在, 则创建
+        new File(mods).mkdirs();
+        new File(worlds).mkdirs();
 
         ensureExecutable(serverPath);
     }
