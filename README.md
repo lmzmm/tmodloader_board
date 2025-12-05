@@ -92,17 +92,22 @@ tmodloader_board/
 1. 运行时指定参数: `--server.port=端口号`
 2. 设置环境变量: `SERVER_PORT=端口号`
 
-### 目录
-确保存在以下目录:
+### 目录和环境变量
+配置环境变量:
+
+Mods和存档目录:`SAVE_PATH`
+
+tmodloader根目录:`TML_PATH`
+
+如果您的 tModLoader 安装在其他位置，需要相应调整代码中的路径引用。
+
+如果未配置环境变量，将使用默认路径：
 
 存档目录:`~/.local/share/Terraria/tModLoader/Worlds`
 
 mod目录:`~/.local/share/Terraria/tModLoader/Mods`
 
 tmodloader根目录:`~/tmodloader`
-
-
-如果您的 tModLoader 安装在其他位置，需要相应调整代码中的路径引用。
 
 ## 使用指南
 
