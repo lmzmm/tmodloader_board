@@ -53,10 +53,6 @@ public class CreateWorld {
             List<String> command = new ArrayList<>();
             command.add(serverPath);
             command.add("-nosteam");
-            command.add("-modpath");
-            command.add(modsPath);
-            command.add("-worldpath");
-            command.add(worldPath);
 
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);

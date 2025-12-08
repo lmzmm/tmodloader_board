@@ -2,6 +2,9 @@ package com.tModLoader_Board.config;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
 @Component
@@ -11,6 +14,7 @@ public class TmodloaderPathConfig {
     final String modsPath;
     final String worldsPath;
     final String packagesPath;
+    final String tmlPath;
     final String serverPath;
 
     public TmodloaderPathConfig(){
@@ -30,11 +34,12 @@ public class TmodloaderPathConfig {
             if (!tmlPath.endsWith("/")) {
                 tmlPath += "/";
             }
-            this.serverPath = tmlPath + "start-tModLoaderServer.sh";
+            this.tmlPath = tmlPath;
         }
         else {
-            this.serverPath = userHome + "/tmodloader/start-tModLoaderServer.sh";
+            this.tmlPath = userHome + "/tmodloader/";
         }
+        this.serverPath = tmlPath + "start-tModLoaderServer.sh";
 
         // 创建目录
         new File(modsPath).mkdirs();
@@ -42,6 +47,12 @@ public class TmodloaderPathConfig {
         new File(packagesPath).mkdirs();
 
         ensureExecutable(serverPath);
+
+        try {
+            setConfig();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void ensureExecutable(String path) {
@@ -55,6 +66,16 @@ public class TmodloaderPathConfig {
                 System.out.println("无法设置 " + path + " 为可执行文件");
             }
         }
+    }
+
+    private void setConfig() throws  Exception {
+        String content = String.format("""
+                priority=1
+                modpath=%s
+                worldpath=%s
+                """, this.modsPath, this.worldsPath);
+
+        Files.writeString(Path.of(this.tmlPath, "serverconfig.txt"), content, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public String getModsPath() {

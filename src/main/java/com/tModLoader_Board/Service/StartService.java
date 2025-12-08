@@ -59,8 +59,6 @@ public class StartService {
             command.add(sessionName);
             command.add(pathConfig.getServerPath());
             command.add("-nosteam");
-            command.add("-modpath");
-            command.add(pathConfig.getModsPath());
             command.add("-world");
             command.add(pathConfig.getWorldsPath()+ world);
             command.add("-maxplayers");
