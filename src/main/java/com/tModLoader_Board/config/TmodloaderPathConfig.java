@@ -39,7 +39,7 @@ public class TmodloaderPathConfig {
         else {
             this.tmlPath = userHome + "/tmodloader/";
         }
-        this.serverPath = tmlPath + "start-tModLoaderServer.sh";
+        this.serverPath = this.tmlPath + "start-tModLoaderServer.sh";
 
         // 创建目录
         new File(modsPath).mkdirs();
