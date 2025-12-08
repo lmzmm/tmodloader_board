@@ -19,12 +19,14 @@ public class CreateService {
     private final StartService startService;
     private final CreateWorld createWorld;
     private final String modPath;
+    private final String worldPath;
 
     public CreateService(StartService startService, CreateWorld createWorld, TmodloaderPathConfig pathConfig) {
         this.startService = startService;
         this.createWorld = createWorld;
 
         this.modPath = pathConfig.getModsPath();
+        this.worldPath = pathConfig.getWorldsPath();
     }
 
     @PostMapping("/create/create")
@@ -53,7 +55,7 @@ public class CreateService {
             if (!config.isPackaged()) {
                 startService.enableMods(config.getMods(), modPath + "enabled.json");
             }
-            createWorld.startConfigurationProcess(modPath);
+            createWorld.startConfigurationProcess(modPath, worldPath);
             return "OK";
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "无法启动服务器进程", e);
