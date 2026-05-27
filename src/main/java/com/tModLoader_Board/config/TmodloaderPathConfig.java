@@ -1,4 +1,8 @@
 package com.tModLoader_Board.config;
+
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -10,19 +14,19 @@ import java.util.Objects;
 @Component
 public class TmodloaderPathConfig {
 
-    final String userHome = System.getProperty("user.home");
-    final String modsPath;
-    final String worldsPath;
-    final String packagesPath;
-    final String tmlPath;
-    final String serverPath;
+    private static final Logger log = LoggerFactory.getLogger(TmodloaderPathConfig.class);
 
-    public TmodloaderPathConfig(){
+    private final String modsPath;
+    private final String worldsPath;
+    private final String packagesPath;
+    private final String serverPath;
+
+    public TmodloaderPathConfig() {
+        String userHome = System.getProperty("user.home");
         String savePath = System.getenv("SAVE_PATH");
         String tmlPath = System.getenv("TML_PATH");
 
         savePath = Objects.requireNonNullElseGet(savePath, () -> userHome + "/.local/share/Terraria/tModLoader/");
-        // 确保路径以 / 结尾
         if (!savePath.endsWith("/")) {
             savePath += "/";
         }
@@ -34,14 +38,11 @@ public class TmodloaderPathConfig {
             if (!tmlPath.endsWith("/")) {
                 tmlPath += "/";
             }
-            this.tmlPath = tmlPath;
+        } else {
+            tmlPath = userHome + "/tmodloader/";
         }
-        else {
-            this.tmlPath = userHome + "/tmodloader/";
-        }
-        this.serverPath = this.tmlPath + "start-tModLoaderServer.sh";
+        this.serverPath = tmlPath + "start-tModLoaderServer.sh";
 
-        // 创建目录
         new File(modsPath).mkdirs();
         new File(worldsPath).mkdirs();
         new File(packagesPath).mkdirs();
@@ -51,31 +52,41 @@ public class TmodloaderPathConfig {
         try {
             setConfig();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to write serverconfig.txt", e);
         }
     }
 
     private void ensureExecutable(String path) {
         File file = new File(path);
-        if (!file.canExecute()) {
+        if (file.exists() && !file.canExecute()) {
             boolean success = file.setExecutable(true);
             if (success) {
-                System.out.println("已设置 " + path + " 为可执行文件");
-            }
-            else {
-                System.out.println("无法设置 " + path + " 为可执行文件");
+                log.info("Set {} as executable", path);
+            } else {
+                log.warn("Unable to set {} as executable", path);
             }
         }
     }
 
-    private void setConfig() throws  Exception {
+    private void setConfig() throws Exception {
+        String tmlPath = System.getenv("TML_PATH");
+        String userHome = System.getProperty("user.home");
+        if (tmlPath == null) {
+            tmlPath = userHome + "/tmodloader/";
+        }
+        if (!tmlPath.endsWith("/")) {
+            tmlPath += "/";
+        }
+
         String content = String.format("""
                 priority=1
                 modpath=%s
                 worldpath=%s
                 """, this.modsPath, this.worldsPath);
 
-        Files.writeString(Path.of(this.tmlPath, "serverconfig.txt"), content, StandardOpenOption.TRUNCATE_EXISTING);
+        Path configFile = Path.of(tmlPath, "serverconfig.txt");
+        Files.createDirectories(configFile.getParent());
+        Files.writeString(configFile, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public String getModsPath() {

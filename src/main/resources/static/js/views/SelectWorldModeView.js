@@ -9,7 +9,7 @@ const SelectWorldModeView = {
             <label><input type="radio" name="worldMode" value="4"> <i class="fas fa-feather-alt"></i> 旅行</label>
         </div>
         <br>
-        <button id="submitBtn">下一步 <i class="fas fa-arrow-right"></i></button>
+        <button id="submitBtn" class="btn-primary">下一步 <i class="fas fa-arrow-right"></i></button>
         <div id="stepStatus" class="step-status"></div>
     </div>
   `,

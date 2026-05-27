@@ -1,15 +1,14 @@
 spring:
   application:
     name: tmodloader_board
-  data:
-    ldap:
-      repositories:
-        enabled:
   servlet:
     multipart:
-      max-request-size: -1
-      max-file-size: -1
+      max-request-size: 500MB
+      max-file-size: 500MB
 server:
   port: 8088
+
+app:
+  password: 000.
 
 

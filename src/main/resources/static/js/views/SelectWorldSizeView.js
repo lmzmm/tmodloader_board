@@ -8,7 +8,7 @@ const SelectWorldSizeView = {
             <label><input type="radio" name="worldSize" value="3"> <i class="fas fa-expand-arrows-alt"></i> 大</label>
         </div>
         <br>
-        <button id="submitBtn">下一步 <i class="fas fa-arrow-right"></i></button>
+        <button id="submitBtn" class="btn-primary">下一步 <i class="fas fa-arrow-right"></i></button>
         <div id="stepStatus" class="step-status"></div>
     </div>
   `,

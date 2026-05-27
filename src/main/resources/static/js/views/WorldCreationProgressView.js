@@ -38,7 +38,8 @@ const WorldCreationProgressView = {
     const backToListBtn = document.getElementById('backToListBtn');
 
     let previousTaskName = '';
-    const eventSource = new EventSource('/create/worldprogress-stream');
+    const storedPassword = localStorage.getItem('panelPassword') || '';
+    const eventSource = new EventSource('/create/worldprogress-stream?password=' + encodeURIComponent(storedPassword));
 
     eventSource.onopen = () => console.log("成功连接到进度流服务器。");
 
@@ -97,7 +98,7 @@ const WorldCreationProgressView = {
         cancelBtn.disabled = true;
         cancelBtn.textContent = '正在取消...';
 
-        fetch('/create/cancelworldcreation', { method: 'POST' })
+        authFetch('/create/cancelworldcreation', { method: 'POST' })
             .then(res => {
                 if(res.ok) {
                     console.log("成功发送取消请求。");

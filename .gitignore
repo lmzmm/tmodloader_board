@@ -1,6 +1,10 @@
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
+hs_err_pid*.log
+*.md
+!README.md
+src/main/resources/up/
 !**/src/main/**/target/
 !**/src/test/**/target/
 

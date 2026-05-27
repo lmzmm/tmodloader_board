@@ -4,7 +4,8 @@ import com.tModLoader_Board.DTO.PlayerManager;
 import com.tModLoader_Board.DTO.ServerMessage;
 import com.tModLoader_Board.Service.ControlService;
 import com.tModLoader_Board.Service.PlayerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -13,11 +14,15 @@ import java.util.List;
 @RestController
 public class ServerManager {
 
-    @Autowired
-    private ControlService controlService;
+    private static final Logger log = LoggerFactory.getLogger(ServerManager.class);
 
-    @Autowired
-    private PlayerService playerService;
+    private final ControlService controlService;
+    private final PlayerService playerService;
+
+    public ServerManager(ControlService controlService, PlayerService playerService) {
+        this.controlService = controlService;
+        this.playerService = playerService;
+    }
 
     @PostMapping("/manage/stop")
     public String stop(@RequestParam String sessionName) {
@@ -32,7 +37,7 @@ public class ServerManager {
     @PostMapping("/manage/broadcast")
     public String broadcast(@RequestBody ServerMessage message) {
         try {
-            controlService.sendCommand(message.getSessionName(), "say " + message.getMessage());
+            controlService.sendCommand(message.sessionName(), "say " + message.message());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -41,12 +46,12 @@ public class ServerManager {
 
     @PostMapping("/manage/kickOrban")
     public String kickOrban(@RequestBody PlayerManager playerManager) {
-        playerService.kickOrBanPlayer(playerManager.getPlayerName(), playerManager.getSessionName(), playerManager.getAction());
+        playerService.kickOrBanPlayer(playerManager.playerName(), playerManager.sessionName(), playerManager.action());
         return "OK";
     }
 
     @GetMapping("/manage/serverlist")
-    public List<String> ServerLis(){
+    public List<String> serverList() {
         try {
             return controlService.getServerList();
         } catch (IOException | InterruptedException e) {
@@ -55,7 +60,7 @@ public class ServerManager {
     }
 
     @GetMapping("/manage/playerlist")
-    public List<String> PlayerLis(@RequestParam String sessionName){
+    public List<String> playerList(@RequestParam String sessionName) {
         try {
             return controlService.getPlayersOnline(sessionName);
         } catch (IOException | InterruptedException e) {

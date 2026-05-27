@@ -106,7 +106,7 @@ function setupUploader(options) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const promise = fetch(uploadEndpoint, {
+      const promise = authFetch(uploadEndpoint, {
         method: 'POST',
         body: formData,
       })

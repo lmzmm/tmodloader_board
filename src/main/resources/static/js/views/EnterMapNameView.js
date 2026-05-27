@@ -6,7 +6,7 @@ const EnterMapNameView = {
             <label for="mapName">地图名称 (必填)</label>
             <input type="text" id="mapName" placeholder="例如: 我的冒险世界">
         </div>
-        <button id="submitBtn">下一步 <i class="fas fa-arrow-right"></i></button>
+        <button id="submitBtn" class="btn-primary">下一步 <i class="fas fa-arrow-right"></i></button>
         <div id="stepStatus" class="step-status"></div>
     </div>
   `,

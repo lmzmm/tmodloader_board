@@ -1,50 +1,55 @@
 package com.tModLoader_Board.Service;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Service
 public class FileService {
+
+    private static final Logger log = LoggerFactory.getLogger(FileService.class);
+
     public void saveFile(MultipartFile file, String path) {
         try {
-            String fileName = file.getOriginalFilename();
-            path = path + fileName;
-            file.transferTo(new File(path));
-        }
-        catch (Exception e) {
-            System.out.println(e);
+            String fileName = sanitizeFilename(file.getOriginalFilename());
+            String destPath = path + fileName;
+            file.transferTo(new File(destPath));
+            log.info("Saved file: {}", destPath);
+        } catch (Exception e) {
+            log.error("Failed to save file: {}", e.getMessage(), e);
         }
     }
 
-    public void deleteFile(String path, List<String> fileList){
+    public void deleteFile(String path, List<String> fileList) {
         for (String fileName : fileList) {
-            File file = new File(path + fileName);
+            String sanitized = sanitizeFilename(fileName);
+            File file = new File(path + sanitized);
             if (file.exists()) {
                 file.delete();
-                System.out.println("成功删除文件：" + fileName);
+                log.info("Deleted file: {}", sanitized);
             }
         }
     }
 
-    public List<String> getfilelist(String path, String fileName) {
-
+    public List<String> getFileList(String path, String extension) {
         List<String> fileList = new ArrayList<>();
         File dir = new File(path);
 
         if (dir.exists() && dir.isDirectory()) {
-            File[] files = dir.listFiles((d, name) -> name.toLowerCase().endsWith(fileName));
+            File[] files = dir.listFiles((d, name) -> name.toLowerCase().endsWith(extension));
             if (files != null) {
                 for (File file : files) {
-                    fileList.add(file.getName()); // 只返回文件名，不含路径
+                    fileList.add(file.getName());
                 }
             }
         }
@@ -52,10 +57,6 @@ public class FileService {
     }
 
     public void packMods(List<String> mods, String packageName, String packagePath) throws IOException {
-
-        // 将文件名列表转换为内部模组名列表
-
-        // 处理 null 输入
         if (mods == null) {
             mods = new ArrayList<>();
         }
@@ -67,22 +68,39 @@ public class FileService {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        File modsConfigFile = new File(packagePath + packageName + ".json");
+        String safeName = sanitizeFilename(packageName);
+        File modsConfigFile = new File(packagePath + safeName + ".json");
 
-        // 生成.json 文件
         try {
             objectMapper.writeValue(modsConfigFile, modNames);
-            System.out.println("成功创建整合包：" + packageName);
+            log.info("Successfully created package: {}", packageName);
         } catch (IOException e) {
-            System.err.println("发生错误: " + e.getMessage());
+            log.error("Error creating package: {}", e.getMessage());
             throw e;
         }
     }
 
-    public void usePackage(String packageName, String packagePath, String modsPath) throws  IOException{
-        Path src = Paths.get(packagePath + packageName);
+    public void usePackage(String packageName, String packagePath, String modsPath) throws IOException {
+        String safeName = sanitizeFilename(packageName);
+        Path src = Paths.get(packagePath + safeName);
         Path dest = Paths.get(modsPath + "enabled.json");
-        System.out.println("使用整合包：" + packageName);
+        log.info("Using package: {}", packageName);
         Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private String sanitizeFilename(String filename) {
+        if (filename == null) {
+            return "unknown";
+        }
+        String sanitized = filename.replace("\\", "/");
+        int lastSlash = sanitized.lastIndexOf('/');
+        if (lastSlash >= 0) {
+            sanitized = sanitized.substring(lastSlash + 1);
+        }
+        sanitized = sanitized.replaceAll("[^a-zA-Z0-9._\\-\\u4e00-\\u9fff]", "_");
+        if (sanitized.isEmpty() || sanitized.equals(".") || sanitized.equals("..")) {
+            sanitized = "unknown";
+        }
+        return sanitized;
     }
 }

@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>服务器管理面板</title>
+<title>tModLoader 管理面板</title>
 <link rel="stylesheet" href="css/style.css">
-<!-- 字体和图标库 -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,38 +13,144 @@
 </head>
 <body>
 
+<!-- Hamburger toggle (tablet/mobile) -->
+<button class="sidebar-toggle" id="sidebarToggle" title="菜单">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar overlay (closes sidebar on mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="container">
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h3><i class="fas fa-server"></i> tModLoader 管理面板</h3>
+      <i class="fas fa-tree logo-icon"></i>
+      <h3>tModLoader<br><span class="subtitle">服务器管理面板</span></h3>
     </div>
-    <button id="btnCreateServer" class="active"><i class="fas fa-plus-circle"></i> 创建服务器</button>
-    <button id="btnMapManagement"><i class="fas fa-map"></i> 地图管理</button>
-    <button id="btnModManagement"><i class="fas fa-puzzle-piece"></i> 模组管理</button>
-    <button id="btnServerList"><i class="fas fa-list-ul"></i> 服务器列表</button>
+    <div class="sidebar-nav">
+      <button id="btnCreateServer" class="active"><i class="fas fa-play-circle"></i> 创建服务器</button>
+      <button id="btnMapManagement"><i class="fas fa-globe-americas"></i> 地图管理</button>
+      <button id="btnModManagement"><i class="fas fa-puzzle-piece"></i> 模组管理</button>
+      <button id="btnServerList"><i class="fas fa-list-ul"></i> 服务器列表</button>
+    </div>
+    <div class="sidebar-footer">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">等待启动</span>
+    </div>
   </div>
   <div class="content" id="contentArea">
-    <!-- 视图内容将动态加载到这里 -->
+    <!-- 视图内容动态加载 -->
   </div>
 </div>
 
-<!-- 加载脚本 -->
+<!-- 地图管理视图模板 -->
+<template id="template-mapManagement">
+  <div class="card">
+    <h2><i class="fas fa-globe-americas"></i> 地图管理</h2>
+    <p>管理您的 Terraria 世界地图文件。</p>
+    <div class="content-wrapper">
+      <div class="selection-area">
+        <div id="worldListContainer" class="scroll-list">正在加载世界列表...</div>
+        <div class="actions-bar">
+          <button id="showWorldUploaderBtn" class="btn-primary"><i class="fas fa-upload"></i> 上传新世界</button>
+          <button id="deleteSelectedWorldsBtn" class="btn-danger"><i class="fas fa-trash"></i> 删除选中项</button>
+          <button id="createWorldBtn" class="btn-success"><i class="fas fa-plus"></i> 创建新世界</button>
+        </div>
+      </div>
+      <div id="worldUploadArea" class="upload-area" style="display: none;">
+        <h3><i class="fas fa-cloud-upload-alt"></i> 上传 .wld 文件</h3>
+        <div id="worldDropZone" class="drop-zone">
+          <i class="fas fa-file-import"></i>
+          <p>拖动文件到此处，或点击选择</p>
+          <p style="font-size: 0.85em; margin-top: 8px; color: var(--cream-dim);">支持 .wld 文件</p>
+        </div>
+        <input type="file" id="worldFileInput" multiple style="display: none;">
+        <h4 style="margin:12px 0 4px; color:var(--cream-dim);"><i class="fas fa-list"></i> 待上传列表</h4>
+        <div id="worldFileList" class="file-list-container"></div>
+        <div id="worldUploadStatus"></div>
+        <button id="uploadAllWorldsBtn" class="btn-primary" style="width:100%; margin-top:12px;">
+          <i class="fas fa-arrow-up"></i> 开始上传
+        </button>
+      </div>
+    </div>
+    <div id="worldOperationStatus"></div>
+  </div>
+</template>
+
+<!-- 模组管理视图模板 -->
+<template id="template-modManagement">
+  <div class="card" style="max-width: 1200px;">
+    <h2><i class="fas fa-puzzle-piece"></i> 模组管理</h2>
+    <p>管理您的模组文件，或将常用模组保存为整合包。</p>
+
+    <div class="mm-tabs">
+      <div id="tabMods" class="mm-tab active"><i class="fas fa-cubes"></i> 模组列表</div>
+      <div id="tabPacks" class="mm-tab"><i class="fas fa-archive"></i> 整合包管理</div>
+    </div>
+
+    <div id="viewMods" class="mm-content active">
+      <div class="mm-left-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin:0; font-family:var(--font-pixel); font-size:0.55rem; color:var(--gold);">已安装模组</h3>
+          <button id="delModsBtn" class="btn-danger" style="padding:6px 14px; font-size:0.82rem;"><i class="fas fa-trash"></i> 删除选中</button>
+        </div>
+        <div id="modListContainer" class="mm-list-box">
+          <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>正在加载...</p></div>
+        </div>
+      </div>
+      <div class="mm-right-panel">
+        <div class="mm-card" style="border-top: 3px solid var(--green);">
+          <h3 class="mm-card-title" style="color: var(--green-bright);"><i class="fas fa-box"></i> 创建整合包</h3>
+          <p style="font-size:0.82em; color:var(--cream-dim); margin-bottom:12px;">勾选左侧模组，保存为预设方案。</p>
+          <input type="text" id="pkgNameInput" class="mm-input" placeholder="输入整合包名称">
+          <button id="createPkgBtn" class="btn-success" style="width:100%;"><i class="fas fa-save"></i> 保存整合包</button>
+          <div id="pkgStatus" style="margin-top: 10px; font-size: 0.85em;"></div>
+        </div>
+        <div class="mm-card" style="border-top: 3px solid var(--gold);">
+          <h3 class="mm-card-title" style="color: var(--gold-bright);"><i class="fas fa-cloud-upload-alt"></i> 上传模组</h3>
+          <div id="modDropZone" class="drop-zone" style="margin-bottom: 10px;">
+            <i class="fas fa-file-import"></i>
+            <p style="color:var(--cream-dim); font-size:0.85em;">点击或拖拽 .tmod 文件</p>
+          </div>
+          <input type="file" id="modFileInput" multiple style="display: none;">
+          <div id="modFileList" class="file-list-container" style="max-height:100px; margin-bottom:10px;"></div>
+          <div id="modUploadStatus" style="font-size:0.82em; margin-bottom:4px;"></div>
+          <button id="uploadAllModsBtn" class="btn-primary" style="width:100%;"><i class="fas fa-arrow-up"></i> 开始上传</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewPacks" class="mm-content">
+      <div style="width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="margin:0; font-family:var(--font-pixel); font-size:0.55rem; color:var(--gold);">现有整合包</h3>
+          <div style="display: flex; gap: 8px;">
+            <button id="refreshPacksBtn" class="btn-back" style="padding:6px 12px; font-size:0.82rem;"><i class="fas fa-sync"></i> 刷新</button>
+            <button id="delPacksBtn" class="btn-danger" style="padding:6px 14px; font-size:0.82rem;"><i class="fas fa-trash"></i> 删除选中</button>
+          </div>
+        </div>
+        <div id="packListContainer" class="mm-list-box">
+          <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>正在加载...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- 脚本 -->
 <script src="js/uploader.js"></script>
-<!-- 现有视图 -->
 <script src="js/views/InitialView.js"></script>
 <script src="js/views/SelectModView.js"></script>
 <script src="js/views/SelectWorldView.js"></script>
 <script src="js/views/ServerSettingsView.js"></script>
 <script src="js/views/ServerListView.js"></script>
 <script src="js/views/ServerControlView.js"></script>
-<!-- 新增的世界创建视图 -->
 <script src="js/views/SelectWorldSizeView.js"></script>
 <script src="js/views/SelectWorldModeView.js"></script>
 <script src="js/views/SelectCorruptionView.js"></script>
 <script src="js/views/EnterMapNameView.js"></script>
 <script src="js/views/FinalizeWorldView.js"></script>
 <script src="js/views/WorldCreationProgressView.js"></script>
-<!-- 主应用逻辑 -->
 <script src="js/main.js"></script>
 
 </body>

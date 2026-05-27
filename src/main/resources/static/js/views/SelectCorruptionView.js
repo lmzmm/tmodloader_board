@@ -8,7 +8,7 @@ const SelectCorruptionView = {
             <label><input type="radio" name="corruption" value="3"> <i class="fas fa-tint"></i> 猩红</label>
         </div>
         <br>
-        <button id="submitBtn">下一步 <i class="fas fa-arrow-right"></i></button>
+        <button id="submitBtn" class="btn-primary">下一步 <i class="fas fa-arrow-right"></i></button>
         <div id="stepStatus" class="step-status"></div>
     </div>
   `,

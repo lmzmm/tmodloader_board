@@ -1,5 +1,7 @@
 package com.tModLoader_Board.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -11,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class ControlService {
+
+    private static final Logger log = LoggerFactory.getLogger(ControlService.class);
 
     public void sendCommand(String sessionName, String commandString) throws IOException, InterruptedException {
         List<String> command = new ArrayList<>();
@@ -26,7 +30,6 @@ public class ControlService {
     }
 
     public String getTmuxOutput(String commandString, String sessionName, int linesToCapture) throws IOException, InterruptedException {
-        // 执行 tmux capture-pane 获取原始输出
         List<String> command = new ArrayList<>();
         command.add("tmux");
         command.add("capture-pane");
@@ -48,7 +51,6 @@ public class ControlService {
         process.waitFor(5, TimeUnit.SECONDS);
         String rawOutput = rawOutputBuilder.toString();
 
-        // 将原始输出分割成行数组
         String[] lines = rawOutput.split(System.lineSeparator());
 
         int commandLineIndex = -1;
@@ -64,7 +66,6 @@ public class ControlService {
             for (int i = commandLineIndex + 1; i < lines.length; i++) {
                 commandResult.append(lines[i]).append(System.lineSeparator());
             }
-            // 返回提取到的精确输出，并去除首尾可能存在的空白
             return commandResult.toString().trim();
         }
 
@@ -73,22 +74,21 @@ public class ControlService {
 
     public List<String> getPlayersOnline(String sessionName) throws IOException, InterruptedException {
         sendCommand(sessionName, "playing");
-        Thread.sleep(500); // 等待服务器响应
+        Thread.sleep(500);
         String output = getTmuxOutput("playing", sessionName, 30);
-
         return parsePlayerList(output);
     }
 
     public void stopServer(String sessionName) throws IOException, InterruptedException {
         if (isSessionRunning(sessionName)) {
-            System.out.println("正在向会话 '" + sessionName + "' 发送 'exit' 命令以关闭服务器");
+            log.info("Sending 'exit' to session '{}' to shut down server", sessionName);
             sendCommand(sessionName, "exit");
             Thread.sleep(2000);
             if (isSessionRunning(sessionName)) {
                 new ProcessBuilder("tmux", "kill-session", "-t", sessionName).start();
             }
         } else {
-            System.out.println("会话 '" + sessionName + "' 未在运行。");
+            log.info("Session '{}' is not running", sessionName);
         }
     }
 
@@ -104,20 +104,17 @@ public class ControlService {
 
         for (String line : lines) {
             String trimmedLine = line.trim();
-
-            // 检查行是否以 ": " 开头，以及是否包含 " ("
             if (trimmedLine.startsWith(": ") && trimmedLine.contains(" (")) {
                 try {
-                    // 玩家名是从第3个字符开始，直到 " (" 出现之前的位置
                     int nameEndIndex = trimmedLine.indexOf(" (");
                     String playerName = trimmedLine.substring(2, nameEndIndex);
                     players.add(playerName);
                 } catch (Exception e) {
-                    System.err.println("解析玩家行时出错: " + trimmedLine);
+                    log.warn("Error parsing player line: {}", trimmedLine, e);
                 }
             }
         }
-        System.out.println(players);
+        log.debug("Players online: {}", players);
         return players;
     }
 
@@ -129,11 +126,9 @@ public class ControlService {
 
         Process process = new ProcessBuilder(command).start();
 
-        // 读取 tmux ls 的输出
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // 提取冒号之前的部分作为会话名
                 int colonIndex = line.indexOf(':');
                 if (colonIndex != -1) {
                     String sessionName = line.substring(0, colonIndex);
@@ -146,9 +141,8 @@ public class ControlService {
 
         process.waitFor(5, TimeUnit.SECONDS);
 
-        // 如果 tmux 命令执行失败，返回空列表
         if (process.exitValue() != 0) {
-            System.err.println("未找到服务器，可能 tmux 服务未运行");
+            log.warn("tmux ls returned non-zero exit code. Is tmux running?");
             return new ArrayList<>();
         }
 
