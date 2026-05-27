@@ -1,37 +1,46 @@
 /* ============================================================
    Terraria-themed tModLoader Management Panel
+   Style inspired by terraria.org & in-game UI textures
    ============================================================ */
 
 /* --- 1. CSS Variables --- */
 :root {
   --font-pixel: 'Press Start 2P', monospace;
-  --font-body: 'Poppins', 'Segoe UI', sans-serif;
+  --font-body: 'Segoe UI', 'PingFang SC', system-ui, sans-serif;
 
-  /* Terraria palette */
-  --bg-deep: #1e1b15;
-  --bg-main: #2a2418;
-  --bg-card: #332d1f;
-  --bg-input: #3a3020;
-  --bg-sidebar: #19140e;
-  --bg-hover: #2a2215;
+  /* Terraria palette (matches terraria.org) */
+  --bg-cave: #0a0a0a;
+  --bg-stone: #2a2520;
+  --bg-stone-light: #3a3530;
+  --bg-wood: #3d2b1a;
+  --bg-wood-dark: #241810;
+  --bg-panel: #332d24;
+  --bg-input: #1a1814;
 
-  --gold: #c4943a;
-  --gold-bright: #daa520;
-  --gold-dim: #8a6828;
-  --green: #4a9e3e;
-  --green-bright: #5cc04a;
-  --red: #c0392b;
+  --text-primary: #d6ffe4;      /* mint green - terraria.org text color */
+  --text-dim: #8a9078;          /* muted green-gray */
+  --text-gold: #daa520;
+  --text-gold-bright: #e8c840;
+
+  --border-stone: #4a4038;
+  --border-wood: #4a3824;
+  --border-light: #5a4a34;
+
+  --green-grass: #3a7a28;
+  --green-bright: #4ec94e;
   --red-bright: #e74c3c;
-  --cream: #e8dcc8;
-  --cream-dim: #9e9478;
-  --cream-dark: #6b6248;
+  --red: #c0392b;
+
+  /* Backward-compatible aliases for JS views */
+  --cream-dim: var(--text-dim);
+  --gold: var(--text-gold);
+  --gold-dim: #8a6828;
+  --gold-bright: var(--text-gold-bright);
 
   --shadow-pixel: 4px 4px 0 rgba(0,0,0,0.5);
   --shadow-pixel-sm: 3px 3px 0 rgba(0,0,0,0.5);
-  --shadow-card: 6px 6px 0 rgba(0,0,0,0.4);
-  --border-pixel: 2px solid #5c4a3a;
+  --shadow-card: 6px 6px 0 rgba(0,0,0,0.45);
 
-  --transition: 0.15s ease;
   --sidebar-width: 250px;
 }
 
@@ -41,46 +50,99 @@
 body, html {
   margin: 0; padding: 0; height: 100%;
   font-family: var(--font-body);
-  background: var(--bg-deep);
-  color: var(--cream);
+  background:
+    /* Deep cave atmosphere */
+    radial-gradient(ellipse at 50% 0%, rgba(58,122,40,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 100%, rgba(25,15,10,0.5) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-cave) 0%, #0f0d08 40%, #0d0f0a 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
   font-size: 15px;
   overflow-x: hidden;
+}
+
+/* Subtle ambient texture overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 6px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* --- 3. Layout --- */
 .container {
   display: flex;
   height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
-/* --- 4. Sidebar --- */
+/* --- 4. Sidebar (Wood texture) --- */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #1a1410 0%, #0f0c08 100%);
-  color: var(--cream);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  border-right: 3px solid #3a2818;
-  box-shadow: 4px 0 12px rgba(0,0,0,0.6);
+  border-right: 3px solid var(--border-wood);
+  box-shadow: 4px 0 16px rgba(0,0,0,0.6);
   position: relative;
   z-index: 20;
   transition: transform 0.3s ease;
+  /* Wood plank texture */
+  background-color: #362618;
+  background-image:
+    /* Plank horizontal lines */
+    repeating-linear-gradient(
+      180deg,
+      transparent,
+      transparent 22px,
+      rgba(0,0,0,0.2) 22px,
+      rgba(0,0,0,0.2) 24px
+    ),
+    /* Wood grain streaks */
+    linear-gradient(90deg,
+      rgba(255,255,255,0.02) 0%,
+      transparent 15%,
+      rgba(0,0,0,0.08) 35%,
+      transparent 55%,
+      rgba(255,255,255,0.03) 75%,
+      transparent 85%,
+      rgba(0,0,0,0.06) 100%
+    ),
+    /* Base color */
+    linear-gradient(180deg, #3d2b1a 0%, #2a1a0f 100%);
+}
+
+/* Sidebar rivets (corners) */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 8px; height: 8px;
+  background: radial-gradient(circle at 40% 40%, #7a6a50, #3a2a18);
+  border: 1px solid #1a1008;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 .sidebar-header {
   padding: 24px 16px;
   text-align: center;
-  border-bottom: 2px solid #3a2818;
-  background: rgba(0,0,0,0.3);
+  border-bottom: 2px solid rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.25);
+  position: relative;
 }
 
 .sidebar-header .logo-icon {
   display: block;
   font-size: 36px;
   margin-bottom: 8px;
-  color: var(--gold);
-  text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+  color: var(--green-grass);
+  text-shadow:
+    0 0 20px rgba(58,122,40,0.4),
+    2px 2px 0 rgba(0,0,0,0.6);
   image-rendering: pixelated;
 }
 
@@ -89,7 +151,7 @@ body, html {
   font-family: var(--font-pixel);
   font-size: 0.65rem;
   line-height: 1.6;
-  color: var(--gold);
+  color: var(--text-gold);
   text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
   letter-spacing: 1px;
 }
@@ -98,14 +160,16 @@ body, html {
   display: block;
   font-family: var(--font-body);
   font-size: 0.7rem;
-  color: var(--cream-dim);
+  color: var(--text-dim);
   margin-top: 4px;
   letter-spacing: 0;
+  font-weight: 400;
 }
 
+/* Sidebar navigation */
 .sidebar-nav {
   flex: 1;
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 .sidebar button {
@@ -116,12 +180,12 @@ body, html {
   background: none;
   border: none;
   border-left: 4px solid transparent;
-  color: var(--cream-dim);
+  color: var(--text-dim);
   padding: 14px 20px;
   font-family: var(--font-body);
   font-size: 0.95rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
   text-align: left;
 }
 
@@ -132,47 +196,51 @@ body, html {
 }
 
 .sidebar button:hover {
-  background: rgba(196,148,58,0.1);
-  color: var(--cream);
-  border-left-color: var(--gold-dim);
+  background: rgba(218,165,32,0.08);
+  color: var(--text-primary);
+  border-left-color: rgba(218,165,32,0.4);
 }
 
 .sidebar button.active {
-  background: rgba(196,148,58,0.15);
-  color: var(--gold-bright);
-  border-left-color: var(--gold);
+  background: rgba(218,165,32,0.12);
+  color: var(--text-gold-bright);
+  border-left-color: var(--text-gold);
   font-weight: 600;
 }
 
+/* Sidebar footer */
 .sidebar-footer {
-  padding: 16px;
-  border-top: 2px solid #3a2818;
+  padding: 14px 16px;
+  border-top: 2px solid rgba(0,0,0,0.4);
   font-size: 0.78rem;
-  color: var(--cream-dim);
+  color: var(--text-dim);
+  background: rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
 }
 
 .sidebar-footer .status-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 0;
-  margin-right: 6px;
-  background: #555;
+  width: 10px; height: 10px;
+  margin-right: 8px;
+  background: #444;
   box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
 }
 
-.sidebar-footer .status-dot.online { background: var(--green-bright); }
+.sidebar-footer .status-dot.online {
+  background: var(--green-bright);
+  box-shadow: 0 0 8px rgba(78,201,78,0.5), 2px 2px 0 rgba(0,0,0,0.5);
+}
 
-/* Hamburger toggle (mobile) */
+/* Hamburger toggle */
 .sidebar-toggle {
   display: none;
   position: fixed;
-  top: 10px;
-  left: 10px;
+  top: 10px; left: 10px;
   z-index: 30;
-  background: var(--bg-sidebar);
-  border: 2px solid #3a2818;
-  color: var(--gold);
+  background: var(--bg-wood-dark);
+  border: 2px solid var(--border-wood);
+  color: var(--text-gold);
   font-size: 1.4rem;
   padding: 8px 12px;
   cursor: pointer;
@@ -186,28 +254,59 @@ body, html {
   padding: 28px;
   overflow-y: auto;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(196,148,58,0.04) 0%, transparent 60%),
-    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 100%);
+    radial-gradient(ellipse at 50% 0%, rgba(58,122,40,0.04) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(10,10,10,0.3) 0%, rgba(15,13,8,0.5) 100%);
+  position: relative;
+  z-index: 1;
 }
 
-/* --- 6. Card --- */
+/* --- 6. Card (Stone texture) --- */
 .card {
-  background: var(--bg-card);
-  border: 3px solid #5c4a3a;
-  box-shadow: var(--shadow-card);
+  background-color: #2e2822;
+  background-image:
+    /* Brick mortar horizontal lines */
+    repeating-linear-gradient(
+      180deg,
+      transparent,
+      transparent 49px,
+      rgba(0,0,0,0.2) 49px,
+      rgba(0,0,0,0.2) 50px
+    ),
+    /* Subtle stone grain */
+    linear-gradient(
+      45deg,
+      rgba(255,255,255,0.015) 0%,
+      transparent 40%,
+      rgba(0,0,0,0.06) 70%,
+      transparent 100%
+    ),
+    linear-gradient(180deg, #332d24 0%, #28231c 100%);
+  border: 3px solid var(--border-stone);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 0 0 1px rgba(0,0,0,0.3),
+    var(--shadow-card);
   padding: 28px;
   margin-bottom: 24px;
   position: relative;
   animation: cardSlideIn 0.35s ease;
 }
 
-.card::before {
+/* Corner rivets - Terraria UI signature */
+.card::before,
+.card::after {
   content: "";
   position: absolute;
-  top: -3px; left: -3px; right: -3px; bottom: -3px;
-  border: 1px solid rgba(196,148,58,0.25);
-  pointer-events: none;
+  width: 10px; height: 10px;
+  background: radial-gradient(circle at 40% 40%, #8a7a60, #3a2a18);
+  border: 1px solid #1a1008;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
 }
+.card::before { top: -7px; left: -7px; }
+.card::after  { top: -7px; right: -7px; }
+
+/* Bottom rivets via inner element or we skip for simplicity.
+   Use a decorative element in HTML for the other two corners if needed. */
 
 @keyframes cardSlideIn {
   from { opacity: 0; transform: translateY(16px); }
@@ -216,29 +315,29 @@ body, html {
 
 .card h2 {
   font-family: var(--font-pixel);
-  font-size: 0.75rem;
-  color: var(--gold-bright);
+  font-size: 0.7rem;
+  color: var(--text-gold-bright);
   margin: 0 0 12px;
   text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   gap: 10px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #3a2818;
+  border-bottom: 2px solid rgba(0,0,0,0.3);
 }
 
 .card h2 i { font-size: 1.1rem; }
 
 .card h3 {
   font-family: var(--font-pixel);
-  font-size: 0.6rem;
-  color: var(--gold);
+  font-size: 0.55rem;
+  color: var(--text-gold);
   margin: 16px 0 8px;
   text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
 }
 
 .card p {
-  color: var(--cream-dim);
+  color: var(--text-dim);
   margin: 0 0 16px;
   line-height: 1.6;
 }
@@ -248,7 +347,7 @@ button {
   font-family: var(--font-body);
   font-size: 0.92rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.12s;
 }
 
 .content button,
@@ -258,19 +357,21 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-  border: 2px solid #5c4a3a;
+  border: 2px solid var(--border-stone);
   box-shadow: var(--shadow-pixel-sm);
   font-weight: 600;
-  color: var(--cream);
-  background: #4a3828;
+  color: var(--text-primary);
+  /* Stone button */
+  background:
+    linear-gradient(180deg, #4a4038 0%, #3a3228 100%);
   position: relative;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
 }
 
 .content button:hover,
 .card button:hover {
-  background: #5c4834;
+  background:
+    linear-gradient(180deg, #5a4e44 0%, #4a4038 100%);
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0 rgba(0,0,0,0.5);
 }
@@ -290,69 +391,65 @@ button {
 /* Primary (gold) */
 .btn-primary,
 .card button.btn-primary {
-  background: var(--gold);
+  background: linear-gradient(180deg, #c4943a 0%, #a07828 100%);
   color: #1a1410;
-  border-color: var(--gold-bright);
+  border-color: #daa520;
 }
 
 .btn-primary:hover,
 .card button.btn-primary:hover {
-  background: var(--gold-bright);
+  background: linear-gradient(180deg, #daa520 0%, #b08830 100%);
 }
 
 /* Success (green) */
 .btn-success,
-.card button.btn-success,
-.actions .btn-enter {
-  background: var(--green);
+.card button.btn-success {
+  background: linear-gradient(180deg, #4a9e3e 0%, #3a7e2e 100%);
   color: #fff;
-  border-color: var(--green-bright);
+  border-color: #5aae4e;
 }
 
 .btn-success:hover,
-.card button.btn-success:hover,
-.actions .btn-enter:hover {
-  background: var(--green-bright);
+.card button.btn-success:hover {
+  background: linear-gradient(180deg, #5aae4e 0%, #4a9e3e 100%);
 }
 
 /* Danger (red) */
 .btn-danger,
-.card button.btn-danger,
-.actions .btn-stop {
-  background: var(--red);
+.card button.btn-danger {
+  background: linear-gradient(180deg, #c0392b 0%, #a02920 100%);
   color: #fff;
-  border-color: var(--red-bright);
+  border-color: #e0493b;
 }
 
 .btn-danger:hover,
-.card button.btn-danger:hover,
-.actions .btn-stop:hover {
-  background: var(--red-bright);
+.card button.btn-danger:hover {
+  background: linear-gradient(180deg, #d0493b 0%, #b0392b 100%);
 }
 
 /* Kick (amber) */
 .actions .btn-kick {
-  background: #b8860b;
+  background: linear-gradient(180deg, #b8860b 0%, #8a6208 100%);
   color: #fff;
   border-color: #daa520;
 }
 
 .actions .btn-kick:hover {
-  background: #daa520;
+  background: linear-gradient(180deg, #ca9620 0%, #a07610 100%);
 }
 
 /* Back / secondary */
 .btn-back,
 .card button.btn-back {
   background: transparent;
-  color: var(--cream-dim);
-  border-color: #5c4a3a;
+  color: var(--text-dim);
+  border-color: var(--border-stone);
 }
 
 .btn-back:hover,
 .card button.btn-back:hover {
-  background: rgba(255,255,255,0.05);
-  color: var(--cream);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
 }
 
 /* --- 8. Forms & Inputs --- */
@@ -364,7 +461,7 @@ button {
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: var(--cream);
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
@@ -376,13 +473,13 @@ input[type="password"] {
   width: 100%;
   max-width: 420px;
   padding: 12px 14px;
-  border: 2px solid #5c4a3a;
+  border: 2px solid var(--border-stone);
   font-size: 0.95rem;
   font-family: var(--font-body);
   background: var(--bg-input);
-  color: var(--cream);
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3);
-  transition: var(--transition);
+  color: var(--text-primary);
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .form-group input:focus,
@@ -391,11 +488,11 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="password"]:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3), 0 0 0 3px rgba(196,148,58,0.15);
+  border-color: var(--text-gold);
+  box-shadow: inset 2px 2px 6px rgba(0,0,0,0.4), 0 0 0 3px rgba(218,165,32,0.1);
 }
 
-::placeholder { color: var(--cream-dark); }
+::placeholder { color: #5a5448; }
 
 /* --- 9. List items --- */
 .item-list {
@@ -411,18 +508,18 @@ input[type="password"]:focus {
   background: rgba(0,0,0,0.2);
   border: 2px solid transparent;
   cursor: pointer;
-  transition: var(--transition);
-  color: var(--cream);
+  transition: background 0.1s, border-color 0.1s;
+  color: var(--text-primary);
 }
 
 .item-list label:hover {
-  background: rgba(196,148,58,0.1);
-  border-color: #5c4a3a;
+  background: rgba(218,165,32,0.08);
+  border-color: rgba(90,74,52,0.5);
 }
 
 .item-list label input {
   margin-right: 12px;
-  accent-color: var(--gold);
+  accent-color: var(--text-gold);
   width: 18px; height: 18px;
 }
 
@@ -433,14 +530,14 @@ input[type="password"]:focus {
   align-items: center;
   padding: 14px 18px;
   background: rgba(0,0,0,0.2);
-  border: 2px solid #3a2818;
+  border: 2px solid rgba(0,0,0,0.3);
   margin-bottom: 6px;
-  transition: var(--transition);
+  transition: border-color 0.1s;
 }
 
 .server-item:hover, .player-item:hover {
-  border-color: #5c4a3a;
-  background: rgba(196,148,58,0.05);
+  border-color: var(--border-stone);
+  background: rgba(218,165,32,0.04);
 }
 
 .server-item .status {
@@ -448,12 +545,12 @@ input[type="password"]:focus {
   width: 12px; height: 12px;
   background: var(--green-bright);
   margin-right: 12px;
-  box-shadow: 0 0 6px rgba(74,158,62,0.5);
+  box-shadow: 0 0 6px rgba(78,201,78,0.5);
 }
 
 .server-item span, .player-item span {
   font-weight: 600;
-  color: var(--cream);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -471,21 +568,20 @@ input[type="password"]:focus {
 
 /* --- 10. Upload Area --- */
 .upload-area {
-  border: 2px dashed #5c4a3a;
+  border: 2px dashed var(--border-stone);
   background: rgba(0,0,0,0.2);
   padding: 20px;
   max-width: 100%;
-  transition: max-height 0.35s ease, opacity 0.35s ease;
 }
 
 .drop-zone {
-  border: 2px dashed var(--gold-dim);
+  border: 2px dashed rgba(218,165,32,0.4);
   padding: 28px 18px;
   text-align: center;
-  color: var(--gold);
+  color: var(--text-gold);
   cursor: pointer;
-  transition: var(--transition);
-  background: rgba(196,148,58,0.04);
+  transition: background 0.15s, border-color 0.15s;
+  background: rgba(218,165,32,0.03);
 }
 
 .drop-zone i {
@@ -495,13 +591,20 @@ input[type="password"]:focus {
 }
 
 .drop-zone:hover {
-  border-color: var(--gold-bright);
-  background: rgba(196,148,58,0.1);
+  border-color: var(--text-gold);
+  background: rgba(218,165,32,0.08);
 }
 
 .drop-zone.dragover {
-  background: rgba(196,148,58,0.15);
+  background: rgba(218,165,32,0.12);
   border-style: solid;
+}
+
+/* File list */
+.file-list-container {
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 0.85rem;
 }
 
 /* --- 11. Content wrapper --- */
@@ -522,8 +625,9 @@ input[type="password"]:focus {
   min-height: 24px;
   font-weight: 500;
   padding: 12px;
-  background: rgba(0,0,0,0.2);
-  border: 2px solid #3a2818;
+  background: rgba(0,0,0,0.25);
+  border: 2px solid rgba(0,0,0,0.3);
+  color: var(--text-dim);
 }
 
 .actions-bar {
@@ -535,26 +639,26 @@ input[type="password"]:focus {
 
 /* --- 13. Info box --- */
 .info-box {
-  background: rgba(196,148,58,0.08);
-  border: 2px solid #5c4a3a;
+  background: rgba(218,165,32,0.06);
+  border: 2px solid var(--border-stone);
   padding: 18px;
   margin-top: 18px;
 }
 
 .info-box h3 {
   margin-top: 0;
-  color: var(--gold);
+  color: var(--text-gold);
 }
 
 .info-box p {
   margin-bottom: 0;
-  color: var(--cream-dim);
+  color: var(--text-dim);
 }
 
-/* --- 14. Mod Management Tabs --- */
+/* --- 14. Mod Management --- */
 .mm-tabs {
   display: flex;
-  border-bottom: 2px solid #5c4a3a;
+  border-bottom: 2px solid rgba(0,0,0,0.4);
   margin-bottom: 18px;
   gap: 2px;
 }
@@ -564,20 +668,20 @@ input[type="password"]:focus {
   cursor: pointer;
   font-weight: 600;
   font-family: var(--font-pixel);
-  font-size: 0.55rem;
-  color: var(--cream-dim);
-  transition: var(--transition);
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  transition: color 0.12s, background 0.12s;
   border: 2px solid transparent;
   border-bottom: none;
   background: rgba(0,0,0,0.2);
 }
 
-.mm-tab:hover { color: var(--cream); background: rgba(196,148,58,0.1); }
+.mm-tab:hover { color: var(--text-primary); background: rgba(218,165,32,0.08); }
 
 .mm-tab.active {
-  color: var(--gold-bright);
-  background: var(--bg-card);
-  border-color: #5c4a3a;
+  color: var(--text-gold-bright);
+  background: #332d24;
+  border-color: rgba(0,0,0,0.3);
 }
 
 .mm-content { display: none; }
@@ -589,7 +693,7 @@ input[type="password"]:focus {
 .mm-list-box {
   height: 420px;
   overflow-y: auto;
-  border: 2px solid #5c4a3a;
+  border: 2px solid rgba(0,0,0,0.3);
   background: rgba(0,0,0,0.2);
   padding: 4px;
 }
@@ -598,26 +702,26 @@ input[type="password"]:focus {
   display: flex;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid #3a2818;
+  border-bottom: 1px solid rgba(0,0,0,0.2);
   transition: background 0.1s;
   cursor: pointer;
-  color: var(--cream);
+  color: var(--text-primary);
 }
 
-.mm-item:hover { background: rgba(196,148,58,0.08); }
-.mm-item input { margin-right: 10px; accent-color: var(--gold); }
+.mm-item:hover { background: rgba(218,165,32,0.06); }
+.mm-item input { margin-right: 10px; accent-color: var(--text-gold); }
 
 .mm-card {
   background: rgba(0,0,0,0.2);
-  border: 2px solid #3a2818;
+  border: 2px solid rgba(0,0,0,0.3);
   padding: 18px;
 }
 
 .mm-card-title {
   margin: 0 0 12px;
   font-family: var(--font-pixel);
-  font-size: 0.55rem;
-  color: var(--gold);
+  font-size: 0.52rem;
+  color: var(--text-gold);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -626,9 +730,9 @@ input[type="password"]:focus {
 .mm-input {
   width: 100%;
   padding: 10px 12px;
-  border: 2px solid #5c4a3a;
+  border: 2px solid var(--border-stone);
   background: var(--bg-input);
-  color: var(--cream);
+  color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 0.9rem;
   margin-bottom: 8px;
@@ -636,27 +740,10 @@ input[type="password"]:focus {
 
 .mm-input:focus {
   outline: none;
-  border-color: var(--gold);
+  border-color: var(--text-gold);
 }
 
-.mm-btn {
-  width: 100%;
-  padding: 10px;
-  border: 2px solid #5c4a3a;
-  cursor: pointer;
-  color: var(--cream);
-  font-weight: 600;
-  box-shadow: var(--shadow-pixel-sm);
-}
-
-.mm-btn-primary { background: var(--gold); color: #1a1410; border-color: var(--gold-bright); }
-.mm-btn-primary:hover { background: var(--gold-bright); }
-.mm-btn-success { background: var(--green); border-color: var(--green-bright); }
-.mm-btn-success:hover { background: var(--green-bright); }
-.mm-btn-danger  { background: var(--red); width: auto; padding: 6px 14px; font-size: 0.82rem; border-color: var(--red-bright); }
-.mm-btn-danger:hover { background: var(--red-bright); }
-
-/* --- 15. Terraria Progress (World Creation) --- */
+/* --- 15. World Creation Progress (Terraria-style) --- */
 .terraria-background {
   display: flex;
   flex-direction: column;
@@ -668,7 +755,7 @@ input[type="password"]:focus {
     repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 6px),
     linear-gradient(180deg, #1a2f20 0%, #0f1a10 100%);
   padding: 20px;
-  border: 3px solid #5c4a3a;
+  border: 3px solid var(--border-stone);
   box-shadow: var(--shadow-card);
 }
 
@@ -681,14 +768,14 @@ input[type="password"]:focus {
 .terraria-text-overlay {
   font-family: var(--font-pixel);
   font-size: 0.6rem;
-  color: var(--cream);
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 28px;
   text-shadow: 2px 2px 0 #000;
   line-height: 1.6;
   padding: 14px;
   background: rgba(0,0,0,0.5);
-  border: 2px solid #3a2818;
+  border: 2px solid rgba(0,0,0,0.4);
 }
 
 .terraria-bars-wrapper {
@@ -718,8 +805,8 @@ input[type="password"]:focus {
 
 .terraria-button {
   font-family: var(--font-pixel);
-  font-size: 0.65rem;
-  background: #4A4A6A;
+  font-size: 0.6rem;
+  background: linear-gradient(180deg, #4A4A6A 0%, #3A3A5A 100%);
   color: #FFF;
   padding: 14px 28px;
   cursor: pointer;
@@ -727,11 +814,11 @@ input[type="password"]:focus {
   border: 2px solid #6A6A8A;
   box-shadow: 4px 4px 0 #2A2A3A;
   margin-top: 24px;
-  transition: var(--transition);
+  transition: all 0.12s;
 }
 
 .terraria-button:hover {
-  background: #6A6A8A;
+  background: linear-gradient(180deg, #5A5A7A 0%, #4A4A6A 100%);
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 #2A2A3A;
 }
@@ -741,7 +828,7 @@ input[type="password"]:focus {
 
 .terraria-text-button {
   font-family: var(--font-pixel);
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   color: #FFF;
   text-shadow: 2px 2px 0 #000;
   margin-top: 24px;
@@ -749,12 +836,12 @@ input[type="password"]:focus {
   background: none;
   border: none;
   padding: 12px;
-  transition: var(--transition);
+  transition: color 0.12s;
 }
 
 .terraria-text-button:hover { color: #FFD700; }
 .terraria-text-button:active { transform: translateY(2px); }
-.terraria-text-button:disabled { color: #888; cursor: not-allowed; }
+.terraria-text-button:disabled { color: #666; cursor: not-allowed; }
 
 .terraria-completion-message {
   display: flex;
@@ -764,7 +851,7 @@ input[type="password"]:focus {
   padding: 36px;
   border: 3px solid #583E3E;
   text-align: center;
-  color: var(--cream);
+  color: var(--text-primary);
   font-family: var(--font-pixel);
   font-size: 0.6rem;
   line-height: 2;
@@ -776,14 +863,14 @@ input[type="password"]:focus {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: var(--cream-dim);
+  color: var(--text-dim);
 }
 
 .empty-state i {
   font-size: 3.5rem;
   display: block;
   margin-bottom: 16px;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 .empty-state p {
@@ -791,20 +878,20 @@ input[type="password"]:focus {
   margin: 4px 0;
 }
 
-/* Scrollable list container */
+/* --- 17. Scrollable list --- */
 .scroll-list {
   max-height: 280px;
   overflow-y: auto;
-  border: 2px solid #3a2818;
+  border: 2px solid rgba(0,0,0,0.3);
   background: rgba(0,0,0,0.15);
   padding: 6px;
   margin-bottom: 18px;
 }
 
-/* Inline toggle section */
+/* --- 18. Toggle section --- */
 .toggle-section {
   background: rgba(0,0,0,0.2);
-  border: 2px solid #3a2818;
+  border: 2px solid rgba(0,0,0,0.3);
   padding: 16px;
   margin-bottom: 20px;
 }
@@ -820,20 +907,46 @@ input[type="password"]:focus {
 .toggle-section .toggle-header h3 {
   margin: 0;
   font-family: var(--font-pixel);
-  font-size: 0.55rem;
-  color: var(--gold);
+  font-size: 0.52rem;
+  color: var(--text-gold);
 }
 
 .toggle-section .toggle-body {
   display: none;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 2px solid #3a2818;
+  border-top: 2px solid rgba(0,0,0,0.3);
 }
 
 .toggle-section .toggle-body.open { display: block; }
 
-/* --- 17. Responsive --- */
+/* --- 19. Logout button --- */
+.sidebar-logout {
+  padding: 0 16px 14px;
+}
+
+.sidebar-logout button {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sidebar-logout button:hover {
+  color: var(--red-bright);
+  border-color: rgba(192,57,43,0.4);
+}
+
+/* --- 20. Responsive --- */
 
 /* Tablet: collapsible sidebar */
 @media (max-width: 900px) {
@@ -855,7 +968,7 @@ input[type="password"]:focus {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.55);
     z-index: 15;
   }
 
@@ -871,7 +984,7 @@ input[type="password"]:focus {
   .card { padding: 18px 14px; }
 
   .card h2 {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     flex-wrap: wrap;
   }
 
@@ -881,7 +994,7 @@ input[type="password"]:focus {
 
   .mm-list-box { height: 280px; }
 
-  .mm-tab { padding: 10px 14px; font-size: 0.5rem; }
+  .mm-tab { padding: 10px 14px; font-size: 0.45rem; }
 
   .server-item, .player-item {
     flex-direction: column;
@@ -893,7 +1006,7 @@ input[type="password"]:focus {
   .actions button { flex: 1; min-width: 80px; }
 
   .terraria-text-overlay { font-size: 0.48rem; }
-  .terraria-button { font-size: 0.5rem; padding: 12px 20px; }
+  .terraria-button { font-size: 0.52rem; padding: 12px 20px; }
   .terraria-text-button { font-size: 0.45rem; }
 
   input[type="text"],

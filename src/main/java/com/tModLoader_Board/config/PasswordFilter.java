@@ -29,7 +29,7 @@ public class PasswordFilter implements Filter {
 
         String path = httpRequest.getRequestURI();
 
-        if (path.equals("/") || path.equals("/index.html") ||
+        if (path.equals("/") || path.equals("/index.html") || path.equals("/login.html") ||
                 path.startsWith("/css/") || path.startsWith("/js/") ||
                 path.equals("/favicon.ico") || path.startsWith("/fonts/")) {
             chain.doFilter(request, response);
@@ -52,9 +52,15 @@ public class PasswordFilter implements Filter {
         }
 
         if (!password.equals(requestPassword)) {
-            httpResponse.setStatus(401);
-            httpResponse.setContentType("text/plain; charset=UTF-8");
-            httpResponse.getWriter().write("密码错误或未提供密码");
+            String acceptHeader = httpRequest.getHeader("Accept");
+            if (acceptHeader != null && acceptHeader.contains("text/html")) {
+                httpResponse.sendRedirect("/login.html?redirect=" +
+                        java.net.URLEncoder.encode(path, "UTF-8"));
+            } else {
+                httpResponse.setStatus(401);
+                httpResponse.setContentType("text/plain; charset=UTF-8");
+                httpResponse.getWriter().write("密码错误或未提供密码");
+            }
             return;
         }
 

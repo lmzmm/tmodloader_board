@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tModLoader 管理面板 - 登录</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --font-pixel: 'Press Start 2P', monospace;
+    --font-body: 'Segoe UI', 'PingFang SC', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background:
+      radial-gradient(ellipse at 50% 30%, #1a2f14 0%, transparent 60%),
+      radial-gradient(ellipse at 20% 80%, #1a1010 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, #0f1a14 0%, transparent 50%),
+      linear-gradient(180deg, #0a0a0a 0%, #0f0d08 30%, #0d0f0a 60%, #080a08 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d6ffe4;
+  }
+
+  /* Cave background texture overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 6px),
+      repeating-linear-gradient(90deg, transparent, transparent 12px, rgba(255,255,255,0.01) 12px, rgba(255,255,255,0.01) 13px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .login-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+  }
+
+  .login-card {
+    background:
+      /* Stone brick texture */
+      linear-gradient(0deg, rgba(0,0,0,0.3) 0px, rgba(0,0,0,0.3) 1px, transparent 1px, transparent 23px, rgba(0,0,0,0.3) 23px, rgba(0,0,0,0.3) 24px),
+      linear-gradient(90deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 109px, rgba(0,0,0,0.15) 109px, rgba(0,0,0,0.15) 110px),
+      linear-gradient(180deg, #3a3228 0%, #2e2820 100%);
+    border: 3px solid #4a3a28;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 0 0 1px rgba(0,0,0,0.5),
+      6px 6px 0 rgba(0,0,0,0.4),
+      7px 7px 0 rgba(0,0,0,0.2);
+    padding: 40px 32px 36px;
+    position: relative;
+  }
+
+  /* Corner rivets - Terraria UI signature */
+  .login-card::before,
+  .login-card::after {
+    content: "";
+    position: absolute;
+    width: 10px; height: 10px;
+    background: radial-gradient(circle at 40% 40%, #8a7a60, #3a2a18);
+    border: 1px solid #1a1008;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .login-card::before { top: -7px; left: -7px; }
+  .login-card::after  { top: -7px; right: -7px; }
+
+  .rivet-bl, .rivet-br {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: radial-gradient(circle at 40% 40%, #8a7a60, #3a2a18);
+    border: 1px solid #1a1008;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .rivet-bl { bottom: -7px; left: -7px; }
+  .rivet-br { bottom: -7px; right: -7px; }
+
+  /* Grass top border */
+  .grass-border {
+    position: absolute;
+    top: -12px;
+    left: -3px;
+    right: -3px;
+    height: 12px;
+    background:
+      linear-gradient(180deg, #2d5a1a 0%, #1a3a0f 60%, transparent 100%);
+    clip-path: polygon(
+      0% 100%, 0% 40%,
+      3% 10%, 6% 40%,
+      9% 5%, 13% 50%,
+      16% 15%, 20% 55%,
+      23% 0%, 27% 45%,
+      30% 10%, 34% 50%,
+      37% 5%, 41% 40%,
+      44% 15%, 48% 55%,
+      51% 0%, 55% 45%,
+      58% 10%, 62% 50%,
+      65% 5%, 69% 40%,
+      72% 15%, 76% 55%,
+      79% 0%, 83% 45%,
+      86% 10%, 90% 50%,
+      93% 5%, 97% 40%,
+      100% 15%, 100% 100%
+    );
+  }
+
+  /* Logo area */
+  .logo-area {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .logo-icon {
+    display: block;
+    font-size: 48px;
+    color: #5cc04a;
+    text-shadow:
+      0 0 20px rgba(74,158,62,0.4),
+      2px 2px 0 rgba(0,0,0,0.6);
+    margin-bottom: 12px;
+    image-rendering: pixelated;
+  }
+
+  .logo-area h1 {
+    font-family: var(--font-pixel);
+    font-size: 0.7rem;
+    color: #daa520;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+    line-height: 1.8;
+    letter-spacing: 1px;
+  }
+
+  .logo-area .subtitle {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: #8a9078;
+    font-weight: 400;
+    letter-spacing: 0;
+    margin-top: 4px;
+  }
+
+  /* Form */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: var(--font-pixel);
+    font-size: 0.48rem;
+    color: #a8b8a0;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .form-group label i {
+    font-size: 0.7rem;
+    color: #daa520;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-wrapper input {
+    width: 100%;
+    padding: 13px 44px 13px 14px;
+    background:
+      linear-gradient(180deg, #1a1814 0%, #12110e 100%);
+    border: 2px solid #4a3a28;
+    color: #d6ffe4;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    box-shadow:
+      inset 2px 2px 6px rgba(0,0,0,0.5),
+      0 0 0 1px rgba(0,0,0,0.3);
+    transition: border-color 0.2s;
+  }
+
+  .input-wrapper input:focus {
+    outline: none;
+    border-color: #daa520;
+    box-shadow:
+      inset 2px 2px 6px rgba(0,0,0,0.5),
+      0 0 0 3px rgba(218,165,32,0.1);
+  }
+
+  .input-wrapper .toggle-pw {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6a7a60;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 8px;
+    transition: color 0.15s;
+  }
+
+  .input-wrapper .toggle-pw:hover {
+    color: #a8b8a0;
+  }
+
+  /* Error message */
+  .error-msg {
+    background: rgba(192,57,43,0.15);
+    border: 2px solid #c0392b;
+    padding: 10px 14px;
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .error-msg.show { display: flex; }
+
+  .error-msg i { font-size: 1rem; }
+
+  /* Login button */
+  .btn-login {
+    width: 100%;
+    padding: 14px;
+    font-family: var(--font-pixel);
+    font-size: 0.55rem;
+    background:
+      linear-gradient(180deg, #5a8a3a 0%, #3a6a1e 100%);
+    color: #d6ffe4;
+    border: 2px solid #4a7a2a;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+    box-shadow:
+      0 4px 0 #1a3a0a,
+      0 5px 0 rgba(0,0,0,0.3);
+    transition: all 0.1s;
+    position: relative;
+    top: 0;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-login:hover {
+    background:
+      linear-gradient(180deg, #6a9a4a 0%, #4a7a2e 100%);
+    border-color: #5a8a3a;
+  }
+
+  .btn-login:active {
+    top: 4px;
+    box-shadow:
+      0 1px 0 #1a3a0a,
+      0 1px 0 rgba(0,0,0,0.3);
+  }
+
+  .btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-login:disabled:active {
+    top: 0;
+    box-shadow:
+      0 4px 0 #1a3a0a,
+      0 5px 0 rgba(0,0,0,0.3);
+  }
+
+  /* Version / footer text */
+  .login-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.78rem;
+    color: #4a5040;
+  }
+
+  .login-footer span {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid #2a2820;
+    background: rgba(0,0,0,0.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="grass-border"></div>
+    <span class="rivet-bl"></span>
+    <span class="rivet-br"></span>
+
+    <div class="logo-area">
+      <i class="fas fa-tree logo-icon"></i>
+      <h1>tModLoader</h1>
+      <span class="subtitle">服务器管理面板</span>
+    </div>
+
+    <div class="error-msg" id="errorMsg">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span id="errorText">密码错误</span>
+    </div>
+
+    <div class="form-group">
+      <label><i class="fas fa-lock"></i> 请输入管理密码</label>
+      <div class="input-wrapper">
+        <input type="password" id="passwordInput" placeholder="输入密码..." autofocus>
+        <button type="button" class="toggle-pw" id="togglePw" title="显示密码">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-login" id="btnLogin">
+      <i class="fas fa-key"></i> 进入面板
+    </button>
+  </div>
+
+  <div class="login-footer">
+    <span>v0.1 — Terraria Server Manager</span>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const redirectPath = params.get('redirect') || '/';
+
+  const input = document.getElementById('passwordInput');
+  const btn = document.getElementById('btnLogin');
+  const errorMsg = document.getElementById('errorMsg');
+  const errorText = document.getElementById('errorText');
+  const togglePw = document.getElementById('togglePw');
+
+  // Toggle password visibility
+  togglePw.addEventListener('click', () => {
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    togglePw.querySelector('i').className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+  });
+
+  // Submit on Enter
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  async function doLogin() {
+    const password = input.value.trim();
+    if (!password) {
+      showError('请输入密码');
+      input.focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+    errorMsg.classList.remove('show');
+
+    try {
+      const response = await fetch('/manage/serverlist', {
+        headers: { 'X-Password': password }
+      });
+
+      if (response.ok) {
+        localStorage.setItem('panelPassword', password);
+        window.location.href = redirectPath;
+      } else if (response.status === 401) {
+        showError('密码错误，请重试');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-key"></i> 进入面板';
+        input.value = '';
+        input.focus();
+      } else {
+        showError('服务器错误: ' + response.status);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-key"></i> 进入面板';
+      }
+    } catch (err) {
+      showError('无法连接服务器');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-key"></i> 进入面板';
+    }
+  }
+
+  function showError(msg) {
+    errorText.textContent = msg;
+    errorMsg.classList.add('show');
+  }
+
+  document.getElementById('btnLogin').addEventListener('click', doLogin);
+</script>
+
+</body>
+</html>

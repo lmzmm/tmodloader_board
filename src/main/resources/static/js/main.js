@@ -17,13 +17,10 @@ async function authFetch(url, options = {}) {
     let response = await fetch(url, options);
 
     if (response.status === 401) {
-        const newPassword = prompt('请输入管理面板密码:');
-        if (!newPassword) {
-            throw new Error('未提供密码');
-        }
-        localStorage.setItem('panelPassword', newPassword);
-        options.headers['X-Password'] = newPassword;
-        response = await fetch(url, options);
+        localStorage.removeItem('panelPassword');
+        const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = '/login.html?redirect=' + currentPath;
+        throw new Error('需要登录');
     }
 
     return response;
@@ -146,6 +143,13 @@ async function postCreatorStep(dataToSend, nextView, buttonElement, statusElemen
    App Startup
    ================================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Redirect to login if no password cached
+    if (!localStorage.getItem('panelPassword')) {
+        const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = '/login.html?redirect=' + currentPath;
+        return;
+    }
 
     initSidebar();
     updateSidebarStatus();
@@ -402,4 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setActive(btnCreateServer);
     currentWorkflow = 'createServer';
     loadView(InitialView);
+
+    // Logout
+    document.getElementById('btnLogout').addEventListener('click', () => {
+        localStorage.removeItem('panelPassword');
+        window.location.href = '/login.html';
+    });
 });
