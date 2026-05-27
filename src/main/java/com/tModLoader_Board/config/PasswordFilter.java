@@ -29,7 +29,8 @@ public class PasswordFilter implements Filter {
 
         String path = httpRequest.getRequestURI();
 
-        if (path.startsWith("/css/") || path.startsWith("/js/") ||
+        if (path.equals("/") || path.equals("/index.html") ||
+                path.startsWith("/css/") || path.startsWith("/js/") ||
                 path.equals("/favicon.ico") || path.startsWith("/fonts/")) {
             chain.doFilter(request, response);
             return;

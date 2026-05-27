@@ -9,10 +9,17 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.io.IOException;
 
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException e) {
+        return ResponseEntity.notFound().build();
+    }
 
     @ExceptionHandler(IOException.class)
     public ResponseEntity<String> handleIOException(IOException e) {

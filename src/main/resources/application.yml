@@ -5,8 +5,15 @@ spring:
     multipart:
       max-request-size: 500MB
       max-file-size: 500MB
+  web:
+    resources:
+      add-mappings: true
 server:
   port: 8088
+
+logging:
+  level:
+    org.springframework.web.servlet.resource: WARN
 
 app:
   password: 000.
